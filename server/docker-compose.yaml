@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+#  app:
+#    build: .
+#    container_name: notice-me-server
+#    ports:
+#      - 8080:8080
+#    depends_on:
+#      mariadb:
+#        condition: service_healthy
+#    networks:
+#      - notice-me-server
+  rabbit:
+    image: rabbitmq:management
+    container_name: rabbit
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - notice-me-server
+  mariadb:
+    image: mariadb:10.7
+    container_name: mariadb-notice-me-server
+    ports:
+      - 3306:3306
+    volumes:
+      - dbvolume:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=notice_me_server
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - notice-me-server
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+volumes:
+  dbvolume:
+
+networks:
+  notice-me-server:

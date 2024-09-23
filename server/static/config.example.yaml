@@ -1,0 +1,15 @@
+server:
+  host: 127.0.0.1
+  port: 8080
+db:
+  user: root
+  pwd: root
+  port: 3306
+  host: mariadb
+  name: notice_me_server
+amqp:
+  user: guest
+  pwd: guest
+  port: 5672
+  host: rabbit
+  enabled: true
