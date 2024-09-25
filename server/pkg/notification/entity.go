@@ -3,6 +3,6 @@ package notification
 import "time"
 
 type Notification struct {
-	text       string
-	notifiedAt time.Time
+	Body       string    `json:"body"`
+	NotifiedAt time.Time `json:"notified_at"`
 }

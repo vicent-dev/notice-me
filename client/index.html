@@ -5,15 +5,17 @@
     <title></title>
 </head>
 <body>
-<button onclick="() => notifyPost()">Fake notification</button>
+<button onclick="notifyPost()">Fake notification</button>
 
 <script>
+    const PROTOCOL = 'http';
     const SERVER_URL = 'localhost:8080';
 
     function notifyPost() {
+        console.log("notification create")
         const xhr = new XMLHttpRequest();
         console.log("test")
-        xhr.open("POST", SERVER_URL + '/api/notification', true);
+        xhr.open("POST", `${PROTOCOL}://${SERVER_URL}/api/notification`, true);
         xhr.send(null);
     }
 
