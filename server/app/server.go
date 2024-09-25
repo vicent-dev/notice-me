@@ -2,16 +2,16 @@ package app
 
 import (
 	"encoding/json"
-	"gorm.io/gorm"
-	"net/http"
-
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"gorm.io/gorm"
+	"net/http"
 )
 
 type server struct {
 	r    *mux.Router
+	ws   *Hub
 	c    *config
 	db   *gorm.DB
 	amqp *amqp.Connection
@@ -20,13 +20,15 @@ type server struct {
 func NewServer() *server {
 
 	s := server{
-		c: loadConfig(),
-		r: mux.NewRouter(),
+		c:  loadConfig(),
+		ws: NewHub(),
+		r:  mux.NewRouter(),
 	}
 
 	if s.c.Rabbit.Enabled {
 		s.rabbit()
 	}
+
 	s.database()
 	s.routes()
 
@@ -34,6 +36,11 @@ func NewServer() *server {
 }
 
 func (s *server) Run() error {
+
+	go func(websocket *Hub) {
+		websocket.Run()
+	}(s.ws)
+
 	return http.ListenAndServe(":"+s.c.Server.Port, handlers.RecoveryHandler()(s.r))
 }
 

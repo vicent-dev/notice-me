@@ -1,27 +1,47 @@
 package app
 
 import (
-	"github.com/en-vee/alog"
+	"log"
 	"net/http"
 	"time"
 )
 
 func (s *server) routes() {
-	s.r.Use(loggingMiddleware)
-	s.r.Use(jsonMiddleware)
 
-	//ping example
-	s.r.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		response := make(map[string]interface{})
-		response["ping"] = "pong pong"
-
-		if s.c.Rabbit.Enabled {
-			err := s.produce(s.c.Rabbit.Queues["ping"], []byte("Ping sent "+time.Now().String()))
-			if err != nil {
-				alog.Debug(err.Error())
-			}
+	s.r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.URL)
+		if r.URL.Path != "/" {
+			http.Error(w, "Not found", http.StatusNotFound)
+			return
 		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		http.ServeFile(w, r, "../client/index.html")
+	})
 
-		s.writeResponse(w, response)
+	s.r.Use(loggingMiddleware)
+
+	s.r.HandleFunc("/ws", s.wsHandler()).Methods("GET")
+	s.r.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		s.PingAllClients([]byte("test " + time.Now().String()))
 	}).Methods("GET")
+}
+
+// handlers @todo move if needed
+func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
+	ws := s.ws
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		client := &Client{websocketService: ws, conn: conn, send: make(chan []byte, 256)}
+		client.websocketService.register <- client
+
+		go client.writePump()
+	}
 }

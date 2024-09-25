@@ -1,6 +1,8 @@
 package main
 
-import "notice-me-server/app"
+import (
+	"notice-me-server/app"
+)
 
 func main() {
 	s := app.NewServer()
