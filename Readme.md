@@ -2,7 +2,7 @@
 
 ### ⚠️🛠️⚠️🛠️⚠️🛠️️ Project under construction ⚠️🛠️⚠️🛠️⚠️🛠️️ 
 
-Notice-me is a server (golang) / client (react) microservice that allows you to implement 
+Notice-me is a server (golang) / client (js) microservice that allows you to implement 
 frontend async notifications from your backend system/s via websockets.
 
 Create notifications from frontend or other backend service and notify to all clients available.
