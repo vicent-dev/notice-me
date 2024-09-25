@@ -2,13 +2,14 @@ package notification
 
 import (
 	"encoding/json"
-	"notice-me-server/app/config"
-	"notice-me-server/app/rabbit"
+	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/rabbit"
+	"notice-me-server/pkg/websocket"
 )
 
 func CreateNotification(r *rabbit.Rabbit) (*Notification, error) {
 	n := &Notification{
-		text: "test",
+		Body: "test body",
 	}
 
 	nJson, _ := json.Marshal(n)
@@ -23,4 +24,9 @@ func CreateNotification(r *rabbit.Rabbit) (*Notification, error) {
 	}, nJson)
 
 	return n, nil
+}
+
+func ConsumeNotification(ws *websocket.Hub, body []byte) {
+	// broadcast to all clients
+	ws.Broadcast <- body
 }

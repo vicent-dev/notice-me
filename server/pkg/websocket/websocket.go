@@ -29,8 +29,6 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-// @todo move logic to pkg?
-
 // Client is a middleman between the websocket connection and the WebsocketService.
 type Client struct {
 	WebsocketService *Hub
@@ -88,7 +86,7 @@ type Hub struct {
 	clients map[*Client]bool
 
 	// Inbound messages from the clients.
-	broadcast chan []byte
+	Broadcast chan []byte
 
 	// Register requests from the clients.
 	Register chan *Client
@@ -99,7 +97,7 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		broadcast:  make(chan []byte),
+		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
@@ -119,7 +117,7 @@ func (ws *Hub) Run() {
 				close(client.Send)
 			}
 		// Send message to clients
-		case message := <-ws.broadcast:
+		case message := <-ws.Broadcast:
 			for client := range ws.clients {
 				select {
 				case client.Send <- message:

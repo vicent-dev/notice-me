@@ -5,17 +5,17 @@ import (
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
-	"notice-me-server/app/config"
+	"notice-me-server/pkg/config"
 	"sync"
 	"time"
 )
 
 type Rabbit struct {
 	conn         *amqp.Connection
-	queuesConfig map[string]config.QueueConfig
+	queuesConfig []config.QueueConfig
 }
 
-func NewRabbit(conn *amqp.Connection, queuesConfig map[string]config.QueueConfig) *Rabbit {
+func NewRabbit(conn *amqp.Connection, queuesConfig []config.QueueConfig) *Rabbit {
 	return &Rabbit{
 		conn:         conn,
 		queuesConfig: queuesConfig,
@@ -40,18 +40,18 @@ func (r *Rabbit) declareQueues() {
 	}
 }
 
-func (r *Rabbit) runConsummers() {
+func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 	wg := sync.WaitGroup{}
 	wg.Add(len(r.queuesConfig))
 
 	for _, queue := range r.queuesConfig {
-		go r.consume(queue)
+		go r.Consume(queue, callbacks)
 	}
 
 	wg.Wait()
 }
 
-func (r *Rabbit) consume(queue config.QueueConfig) {
+func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(body []byte)) {
 	ch, _ := r.conn.Channel()
 
 	msgs, _ := ch.Consume(
@@ -69,6 +69,11 @@ func (r *Rabbit) consume(queue config.QueueConfig) {
 	go func() {
 		for d := range msgs {
 			log.Printf("Received a message: %s", d.Body)
+			callback, ok := callbacks[d.RoutingKey]
+
+			if ok {
+				callback(d.Body)
+			}
 		}
 	}()
 

@@ -3,20 +3,21 @@ package app
 import (
 	"log"
 	"net/http"
-	"notice-me-server/app/rabbit"
-	"notice-me-server/app/websocket"
 	"notice-me-server/pkg/notification"
+	"notice-me-server/pkg/rabbit"
+	"notice-me-server/pkg/websocket"
 )
 
 func (s *server) routes() {
-	apiRouter := s.r.PathPrefix("/api").Subrouter()
-	apiRouter.Use(jsonMiddleware)
 
 	s.r.Use(loggingMiddleware)
 
+	apiRouter := s.r.PathPrefix("/api").Subrouter()
+	apiRouter.Use(jsonMiddleware)
+
 	s.r.HandleFunc("/ws", s.wsHandler()).Methods("GET")
 
-	//notify POST
+	//create notification
 	apiRouter.HandleFunc("/notification", s.createNotificationHandler()).Methods("POST")
 }
 

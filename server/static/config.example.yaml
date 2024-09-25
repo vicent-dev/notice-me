@@ -13,3 +13,12 @@ rabbit:
   port: 5672
   host: rabbit
   enabled: true
+  queues:
+    -
+      name: notification.create
+      exchange: notification
+      durable: true
+      autoDelete: false
+      exclusive: false
+      noWait: false
+

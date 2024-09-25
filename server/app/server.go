@@ -7,8 +7,9 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"gorm.io/gorm"
 	"net/http"
-	"notice-me-server/app/config"
-	"notice-me-server/app/websocket"
+	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/rabbit"
+	"notice-me-server/pkg/websocket"
 )
 
 type server struct {
@@ -40,7 +41,14 @@ func (s *server) Run() error {
 		websocket.Run()
 	}(s.ws)
 
-	return http.ListenAndServe(":"+s.c.Server.Port, handlers.RecoveryHandler()(s.r))
+	go func(amqp *amqp.Connection, queues []config.QueueConfig, consumers map[string]func([]byte)) {
+		r := rabbit.NewRabbit(amqp, queues)
+		r.RunConsumers(consumers)
+	}(s.amqp, s.c.Rabbit.Queues, s.consumersMap())
+
+	handler := handlers.RecoveryHandler()(s.r)
+
+	return http.ListenAndServe(":"+s.c.Server.Port, handler)
 }
 
 func (s *server) writeResponse(w http.ResponseWriter, response map[string]interface{}) {
