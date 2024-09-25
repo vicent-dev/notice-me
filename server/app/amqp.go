@@ -4,6 +4,7 @@ import (
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"notice-me-server/pkg/notification"
+	"notice-me-server/pkg/repository"
 )
 
 func (s *server) connectAmqp() {
@@ -29,7 +30,8 @@ func (s *server) consumersMap() map[string]func([]byte) {
 }
 
 func (s *server) consumeNotificationHandler() func([]byte) {
+	repo := repository.GetRepository[notification.Notification](s.db)
 	return func(body []byte) {
-		notification.ConsumeNotification(s.ws, body)
+		notification.ConsumeNotification(repo, s.ws, body)
 	}
 }

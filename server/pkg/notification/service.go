@@ -4,13 +4,17 @@ import (
 	"encoding/json"
 	"notice-me-server/pkg/config"
 	"notice-me-server/pkg/rabbit"
+	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
+	"time"
 )
 
-func CreateNotification(r *rabbit.Rabbit) (*Notification, error) {
+func CreateNotification(repo repository.Repository[Notification], r *rabbit.Rabbit) (*Notification, error) {
 	n := &Notification{
 		Body: "test body",
 	}
+
+	repo.Create(n)
 
 	nJson, _ := json.Marshal(n)
 
@@ -26,7 +30,16 @@ func CreateNotification(r *rabbit.Rabbit) (*Notification, error) {
 	return n, nil
 }
 
-func ConsumeNotification(ws *websocket.Hub, body []byte) {
+func ConsumeNotification(repo repository.Repository[Notification], ws *websocket.Hub, body []byte) {
+
+	//update notification
+	n := &Notification{}
+
+	json.Unmarshal(body, n)
+
+	repo.Find(n.ID)
+	repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
+
 	// broadcast to all clients
-	ws.Broadcast <- body
+	ws.Broadcast <- []byte(n.Format())
 }

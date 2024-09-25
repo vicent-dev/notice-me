@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/rabbit"
+	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
 )
 
@@ -24,8 +25,10 @@ func (s *server) routes() {
 // handlers @todo move if needed
 func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
 	rab := rabbit.NewRabbit(s.amqp, s.c.Rabbit.Queues)
+	repo := repository.GetRepository[notification.Notification](s.db)
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		notification.CreateNotification(rab)
+		notification.CreateNotification(repo, rab)
 	}
 }
 

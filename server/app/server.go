@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/websocket"
 )
@@ -28,6 +29,7 @@ func NewServer() *server {
 	}
 
 	s.connectDb()
+	s.db.AutoMigrate(notification.Notification{})
 	s.connectAmqp()
 
 	s.routes()
