@@ -1,4 +1,4 @@
-package app
+package websocket
 
 import (
 	"github.com/gorilla/websocket"
@@ -24,114 +24,110 @@ var (
 	space   = []byte{' '}
 )
 
-var upgrader = websocket.Upgrader{
+var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
 // @todo move logic to pkg?
 
-// client is a middleman between the websocket connection and the websocketService.
-type client struct {
-	websocketService *hub
+// Client is a middleman between the websocket connection and the WebsocketService.
+type Client struct {
+	WebsocketService *Hub
 
 	// The websocket connection.
-	conn *websocket.Conn
+	Conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	send chan []byte
+	Send chan []byte
 }
 
-func (c *client) writePump() {
+func (c *Client) Write() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		c.conn.Close()
+		c.Conn.Close()
 	}()
 	for {
 		select {
-		case message, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+		case message, ok := <-c.Send:
+			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
-				// The websocketService closed the channel.
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				// The WebsocketService closed the channel.
+				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
 
-			w, err := c.conn.NextWriter(websocket.TextMessage)
+			w, err := c.Conn.NextWriter(websocket.TextMessage)
 			if err != nil {
 				return
 			}
 			w.Write(message)
 
 			// Add queued chat messages to the current websocket message.
-			n := len(c.send)
+			n := len(c.Send)
 			for i := 0; i < n; i++ {
 				w.Write(newline)
-				w.Write(<-c.send)
+				w.Write(<-c.Send)
 			}
 
 			if err := w.Close(); err != nil {
 				return
 			}
 		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
 		}
 	}
 }
 
-type hub struct {
+type Hub struct {
 	// Registered clients.
-	clients map[*client]bool
+	clients map[*Client]bool
 
 	// Inbound messages from the clients.
 	broadcast chan []byte
 
 	// Register requests from the clients.
-	register chan *client
+	Register chan *Client
 
 	// Unregister requests from clients.
-	unregister chan *client
+	unregister chan *Client
 }
 
-func newHub() *hub {
-	return &hub{
+func NewHub() *Hub {
+	return &Hub{
 		broadcast:  make(chan []byte),
-		register:   make(chan *client),
-		unregister: make(chan *client),
-		clients:    make(map[*client]bool),
+		Register:   make(chan *Client),
+		unregister: make(chan *Client),
+		clients:    make(map[*Client]bool),
 	}
 }
 
-func (ws *hub) run() {
+func (ws *Hub) Run() {
 	for {
 		select {
-		// new client connected
-		case client := <-ws.register:
+		// new Client connected
+		case client := <-ws.Register:
 			ws.clients[client] = true
-		// client disconnected
+		// Client disconnected
 		case client := <-ws.unregister:
 			if _, ok := ws.clients[client]; ok {
 				delete(ws.clients, client)
-				close(client.send)
+				close(client.Send)
 			}
-		// send message to clients
+		// Send message to clients
 		case message := <-ws.broadcast:
 			for client := range ws.clients {
 				select {
-				case client.send <- message:
+				case client.Send <- message:
 				default:
-					close(client.send)
+					close(client.Send)
 					delete(ws.clients, client)
 				}
 			}
 		}
 	}
-}
-
-func (s *Server) broadcastAllClients(message []byte) {
-	s.ws.broadcast <- message
 }

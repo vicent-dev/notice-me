@@ -1,38 +1,28 @@
-package app
+package rabbit
 
 import (
 	"context"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
+	"notice-me-server/app/config"
 	"sync"
 	"time"
 )
 
-type rabbit struct {
+type Rabbit struct {
 	conn         *amqp.Connection
-	queuesConfig map[string]QueueConfig
+	queuesConfig map[string]config.QueueConfig
 }
 
-func (s *Server) newRabbit() *rabbit {
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/",
-		s.c.Rabbit.User,
-		s.c.Rabbit.Pwd,
-		s.c.Rabbit.Host,
-		s.c.Rabbit.Port,
-	))
-
-	if err != nil {
-		panic(err)
-	}
-
-	return &rabbit{
+func NewRabbit(conn *amqp.Connection, queuesConfig map[string]config.QueueConfig) *Rabbit {
+	return &Rabbit{
 		conn:         conn,
-		queuesConfig: s.c.Rabbit.Queues,
+		queuesConfig: queuesConfig,
 	}
 }
 
-func (r *rabbit) declareQueues() {
+func (r *Rabbit) declareQueues() {
 	ch, _ := r.conn.Channel()
 
 	defer ch.Close()
@@ -50,7 +40,7 @@ func (r *rabbit) declareQueues() {
 	}
 }
 
-func (r *rabbit) runConsummers() {
+func (r *Rabbit) runConsummers() {
 	wg := sync.WaitGroup{}
 	wg.Add(len(r.queuesConfig))
 
@@ -61,7 +51,7 @@ func (r *rabbit) runConsummers() {
 	wg.Wait()
 }
 
-func (r *rabbit) consume(queue QueueConfig) {
+func (r *Rabbit) consume(queue config.QueueConfig) {
 	ch, _ := r.conn.Channel()
 
 	msgs, _ := ch.Consume(
@@ -83,10 +73,11 @@ func (r *rabbit) consume(queue QueueConfig) {
 	}()
 
 	log.Printf(fmt.Sprintf(" [*] Waiting for messages from queue %s. To exit press CTRL+C", queue.Name))
+
 	<-forever
 }
 
-func (r *rabbit) produce(queue QueueConfig, msg []byte) error {
+func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
 	ch, _ := r.conn.Channel()
 
 	q, _ := ch.QueueDeclare(

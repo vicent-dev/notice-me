@@ -1,4 +1,4 @@
-package app
+package config
 
 import (
 	"log"
@@ -16,7 +16,7 @@ type QueueConfig struct {
 	NoWait     bool   `yaml:"noWait"`
 }
 
-type config struct {
+type Config struct {
 	Server struct {
 		Host string `yaml:"host"`
 		Port string `yaml:"port"`
@@ -38,8 +38,8 @@ type config struct {
 	} `yaml:"rabbit"`
 }
 
-func loadConfig() *config {
-	c := &config{}
+func LoadConfig() *Config {
+	c := &Config{}
 
 	cFile := static.GetConfigFile()
 	err := yaml.Unmarshal(cFile, c)
