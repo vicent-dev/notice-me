@@ -9,7 +9,12 @@ import (
 	"time"
 )
 
-func (s *server) rabbit() {
+type rabbit struct {
+	conn         *amqp.Connection
+	queuesConfig map[string]QueueConfig
+}
+
+func (s *Server) newRabbit() *rabbit {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/",
 		s.c.Rabbit.User,
 		s.c.Rabbit.Pwd,
@@ -21,15 +26,18 @@ func (s *server) rabbit() {
 		panic(err)
 	}
 
-	s.amqp = conn
+	return &rabbit{
+		conn:         conn,
+		queuesConfig: s.c.Rabbit.Queues,
+	}
 }
 
-func (s *server) DeclareQueues() {
-	ch, _ := s.amqp.Channel()
+func (r *rabbit) declareQueues() {
+	ch, _ := r.conn.Channel()
 
 	defer ch.Close()
 
-	for _, queue := range s.c.Rabbit.Queues {
+	for _, queue := range r.queuesConfig {
 
 		_, _ = ch.QueueDeclare(
 			queue.Name,
@@ -42,19 +50,19 @@ func (s *server) DeclareQueues() {
 	}
 }
 
-func (s *server) RunConsummers() {
+func (r *rabbit) runConsummers() {
 	wg := sync.WaitGroup{}
-	wg.Add(len(s.c.Rabbit.Queues))
+	wg.Add(len(r.queuesConfig))
 
-	for _, queue := range s.c.Rabbit.Queues {
-		go s.consume(queue)
+	for _, queue := range r.queuesConfig {
+		go r.consume(queue)
 	}
 
 	wg.Wait()
 }
 
-func (s *server) consume(queue QueueConfig) {
-	ch, _ := s.amqp.Channel()
+func (r *rabbit) consume(queue QueueConfig) {
+	ch, _ := r.conn.Channel()
 
 	msgs, _ := ch.Consume(
 		queue.Name, // queue
@@ -78,8 +86,8 @@ func (s *server) consume(queue QueueConfig) {
 	<-forever
 }
 
-func (s *server) produce(queue QueueConfig, msg []byte) error {
-	ch, _ := s.amqp.Channel()
+func (r *rabbit) produce(queue QueueConfig, msg []byte) error {
+	ch, _ := r.conn.Channel()
 
 	q, _ := ch.QueueDeclare(
 		queue.Name,

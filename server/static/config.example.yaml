@@ -7,7 +7,7 @@ db:
   port: 3306
   host: mariadb
   name: notice_me_server
-amqp:
+rabbit:
   user: guest
   pwd: guest
   port: 5672

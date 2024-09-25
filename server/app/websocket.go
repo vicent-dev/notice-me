@@ -31,9 +31,9 @@ var upgrader = websocket.Upgrader{
 
 // @todo move logic to pkg?
 
-// Client is a middleman between the websocket connection and the websocketService.
-type Client struct {
-	websocketService *Hub
+// client is a middleman between the websocket connection and the websocketService.
+type client struct {
+	websocketService *hub
 
 	// The websocket connection.
 	conn *websocket.Conn
@@ -42,7 +42,7 @@ type Client struct {
 	send chan []byte
 }
 
-func (c *Client) writePump() {
+func (c *client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -83,30 +83,30 @@ func (c *Client) writePump() {
 	}
 }
 
-type Hub struct {
+type hub struct {
 	// Registered clients.
-	clients map[*Client]bool
+	clients map[*client]bool
 
 	// Inbound messages from the clients.
 	broadcast chan []byte
 
 	// Register requests from the clients.
-	register chan *Client
+	register chan *client
 
 	// Unregister requests from clients.
-	unregister chan *Client
+	unregister chan *client
 }
 
-func NewHub() *Hub {
-	return &Hub{
+func newHub() *hub {
+	return &hub{
 		broadcast:  make(chan []byte),
-		register:   make(chan *Client),
-		unregister: make(chan *Client),
-		clients:    make(map[*Client]bool),
+		register:   make(chan *client),
+		unregister: make(chan *client),
+		clients:    make(map[*client]bool),
 	}
 }
 
-func (ws *Hub) Run() {
+func (ws *hub) run() {
 	for {
 		select {
 		// new client connected
@@ -132,6 +132,6 @@ func (ws *Hub) Run() {
 	}
 }
 
-func (s *server) PingAllClients(message []byte) {
+func (s *Server) broadcastAllClients(message []byte) {
 	s.ws.broadcast <- message
 }

@@ -4,54 +4,48 @@ import (
 	"encoding/json"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	amqp "github.com/rabbitmq/amqp091-go"
-	"gorm.io/gorm"
 	"net/http"
 )
 
-type server struct {
-	r    *mux.Router
-	ws   *Hub
-	c    *config
-	db   *gorm.DB
-	amqp *amqp.Connection
+type Server struct {
+	r      *mux.Router
+	ws     *hub
+	rabbit *rabbit
+	db     *db
+	c      *config
 }
 
-func NewServer() *server {
-
-	s := server{
+func NewServer() *Server {
+	s := Server{
 		c:  loadConfig(),
-		ws: NewHub(),
+		ws: newHub(),
 		r:  mux.NewRouter(),
 	}
 
-	if s.c.Rabbit.Enabled {
-		s.rabbit()
-	}
-
-	s.database()
+	s.db = s.newDb()
+	s.rabbit = s.newRabbit()
 	s.routes()
 
 	return &s
 }
 
-func (s *server) Run() error {
+func (s *Server) Run() error {
 
-	go func(websocket *Hub) {
-		websocket.Run()
+	go func(websocket *hub) {
+		websocket.run()
 	}(s.ws)
 
 	return http.ListenAndServe(":"+s.c.Server.Port, handlers.RecoveryHandler()(s.r))
 }
 
-func (s *server) writeResponse(w http.ResponseWriter, response map[string]interface{}) {
+func (s *Server) writeResponse(w http.ResponseWriter, response map[string]interface{}) {
 	w.WriteHeader(http.StatusOK)
 
 	byteResponse, _ := json.Marshal(response)
 	_, _ = w.Write(byteResponse)
 }
 
-func (s *server) writeErrorResponse(w http.ResponseWriter, response map[string]interface{}, errorCode int) {
+func (s *Server) writeErrorResponse(w http.ResponseWriter, response map[string]interface{}, errorCode int) {
 	w.WriteHeader(errorCode)
 	byteResponse, _ := json.Marshal(response)
 	_, _ = w.Write(byteResponse)
