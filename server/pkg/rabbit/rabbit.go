@@ -2,6 +2,7 @@ package rabbit
 
 import (
 	"context"
+	"github.com/en-vee/alog"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"notice-me-server/pkg/config"
 	"sync"
@@ -43,6 +44,7 @@ func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 	wg.Add(len(r.queuesConfig))
 
 	for _, queue := range r.queuesConfig {
+		alog.Info("Consuming from queue " + queue.Name)
 		go r.Consume(queue, callbacks)
 	}
 
@@ -66,6 +68,8 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 
 	go func() {
 		for d := range msgs {
+			alog.Info("Message received [" + d.RoutingKey + "] " + string(d.Body))
+
 			callback, ok := callbacks[d.RoutingKey]
 
 			if ok {
