@@ -1,19 +1,20 @@
 version: '3.9'
 
 services:
-#  app:
-#    build: .
-#    container_name: notice-me-server
-#    ports:
-#      - 8080:8080
-#    depends_on:
-#      mariadb:
-#        condition: service_healthy
-#    networks:
-#      - notice-me-server
-  rabbit:
+  app:
+    build: .
+    container_name: notice-me-server
+    ports:
+      - 8080:8080
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - notice-me-server
+  rabbitmq:
     image: rabbitmq:management
-    container_name: rabbit
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
@@ -22,6 +23,11 @@ services:
       - "15672:15672"
     networks:
       - notice-me-server
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 30s
+      timeout: 30s
+      retries: 10
   mariadb:
     image: mariadb:10.7
     container_name: mariadb-notice-me-server
