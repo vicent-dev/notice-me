@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"notice-me-server/pkg/notification"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -19,4 +20,6 @@ func (s *server) connectDb() {
 	}
 
 	s.db = conn
+
+	s.db.AutoMigrate(&notification.Notification{})
 }

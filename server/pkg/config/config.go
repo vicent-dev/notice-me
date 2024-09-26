@@ -18,8 +18,9 @@ type QueueConfig struct {
 
 type Config struct {
 	Server struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		Host string   `yaml:"host"`
+		Port string   `yaml:"port"`
+		Cors []string `yaml:"cors"`
 	} `yaml:"server"`
 	Db struct {
 		User string `yaml:"user"`

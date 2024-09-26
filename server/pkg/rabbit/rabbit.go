@@ -2,9 +2,7 @@ package rabbit
 
 import (
 	"context"
-	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 	"notice-me-server/pkg/config"
 	"sync"
 	"time"
@@ -55,12 +53,12 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 	ch, _ := r.conn.Channel()
 
 	msgs, _ := ch.Consume(
-		queue.Name, // queue
+		queue.Name,
 		"",
 		true,
+		queue.Exclusive,
 		false,
-		false,
-		false,
+		queue.NoWait,
 		nil,
 	)
 
@@ -68,7 +66,6 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 
 	go func() {
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
 			callback, ok := callbacks[d.RoutingKey]
 
 			if ok {
@@ -76,8 +73,6 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 			}
 		}
 	}()
-
-	log.Printf(fmt.Sprintf(" [*] Waiting for messages from queue %s. To exit press CTRL+C", queue.Name))
 
 	<-forever
 }

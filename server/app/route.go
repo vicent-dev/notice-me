@@ -12,5 +12,3 @@ func (s *server) routes() {
 	//create notification
 	apiRouter.HandleFunc("/notification", s.createNotificationHandler()).Methods("POST")
 }
-
-// handlers @todo move if needed

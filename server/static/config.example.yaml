@@ -1,6 +1,7 @@
 server:
   host: 127.0.0.1
   port: 8080
+  cors: [localhost]
 db:
   user: root
   pwd: root

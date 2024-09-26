@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"notice-me-server/pkg/config"
-	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/websocket"
 )
@@ -29,7 +28,6 @@ func NewServer() *server {
 	}
 
 	s.connectDb()
-	s.db.AutoMigrate(notification.Notification{})
 	s.connectAmqp()
 
 	s.routes()
@@ -48,19 +46,30 @@ func (s *server) Run() error {
 		r.RunConsumers(consumers)
 	}(s.amqp, s.c.Rabbit.Queues, s.consumersMap())
 
-	handler := handlers.RecoveryHandler()(s.r)
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins(s.c.Server.Cors)
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	handler := handlers.CORS(headersOk, originsOk, methodsOk)(handlers.RecoveryHandler()(s.r))
 
 	return http.ListenAndServe(":"+s.c.Server.Port, handler)
 }
 
-func (s *server) writeResponse(w http.ResponseWriter, response map[string]interface{}) {
-	w.WriteHeader(http.StatusOK)
+func (s *server) writeResponse(w http.ResponseWriter, response interface{}) {
+	if response == nil {
+		w.WriteHeader(http.StatusCreated)
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 
 	byteResponse, _ := json.Marshal(response)
 	_, _ = w.Write(byteResponse)
 }
 
-func (s *server) writeErrorResponse(w http.ResponseWriter, response map[string]interface{}, errorCode int) {
+func (s *server) writeErrorResponse(w http.ResponseWriter, err error, errorCode int) {
+	response := make(map[string]interface{})
+
+	response["error"] = err.Error()
 	w.WriteHeader(errorCode)
 	byteResponse, _ := json.Marshal(response)
 	_, _ = w.Write(byteResponse)
