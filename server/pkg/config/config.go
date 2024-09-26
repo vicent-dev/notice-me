@@ -18,9 +18,12 @@ type QueueConfig struct {
 
 type Config struct {
 	Server struct {
-		Host string   `yaml:"host"`
-		Port string   `yaml:"port"`
-		Cors []string `yaml:"cors"`
+		Host    string   `yaml:"host"`
+		Port    string   `yaml:"port"`
+		Cors    []string `yaml:"cors"`
+		Env     string   `yaml:"env"`
+		TlsKey  string   `yaml:"tlsKey"`
+		TlsCert string   `yaml:"tlsCert"`
 	} `yaml:"server"`
 	Db struct {
 		User string `yaml:"user"`

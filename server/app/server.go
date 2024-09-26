@@ -52,7 +52,12 @@ func (s *server) Run() error {
 
 	handler := handlers.CORS(headersOk, originsOk, methodsOk)(handlers.RecoveryHandler()(s.r))
 
-	return http.ListenAndServe(":"+s.c.Server.Port, handler)
+	if s.c.Server.Env == "production" {
+
+		return http.ListenAndServeTLS(":"+s.c.Server.Port, s.c.Server.TlsCert, s.c.Server.TlsKey, handler)
+	} else {
+		return http.ListenAndServe(":"+s.c.Server.Port, handler)
+	}
 }
 
 func (s *server) writeResponse(w http.ResponseWriter, response interface{}) {
