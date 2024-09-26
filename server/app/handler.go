@@ -1,6 +1,8 @@
 package app
 
 import (
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"notice-me-server/pkg/notification"
@@ -14,7 +16,20 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 	repo := repository.GetRepository[notification.Notification](s.db)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		notification.CreateNotification(repo, rab)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		notificationPostDto := &notification.NotificationPostDto{}
+		if err != json.Unmarshal(body, notificationPostDto) {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		notification.CreateNotification(notificationPostDto, repo, rab)
+		s.writeResponse(w, nil)
 	}
 }
 

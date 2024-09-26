@@ -9,9 +9,13 @@ import (
 	"time"
 )
 
-func CreateNotification(repo repository.Repository[Notification], r *rabbit.Rabbit) (*Notification, error) {
+func CreateNotification(
+	notificationPostDto *NotificationPostDto,
+	repo repository.Repository[Notification],
+	r *rabbit.Rabbit,
+) (*Notification, error) {
 	n := &Notification{
-		Body: "test body",
+		Body: notificationPostDto.Body,
 	}
 
 	repo.Create(n)
@@ -41,5 +45,5 @@ func ConsumeNotification(repo repository.Repository[Notification], ws *websocket
 	repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
 
 	// broadcast to all clients
-	ws.Broadcast <- []byte(n.Format())
+	ws.Broadcast <- []byte(n.FormatHTML())
 }

@@ -3,38 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <title></title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
-<button onclick="notifyPost()">Fake notification</button>
 
+<input id="notification-body" type="text" name="body"/>
+<button type="submit" onclick="createNotification()">Create</button>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="notice-me.js"></script>
+
+<script type="module">
+    import noticeMe from "./notice-me.js";
+
+    // noticeMe((notificationBody) => console.log(notificationBody));
+    noticeMe();
+</script>
 <script>
     const PROTOCOL = 'http';
-    const SERVER_URL = 'localhost:8080';
+    const SERVER_URL = window.location.hostname + ':8080';
 
-    function notifyPost() {
-        console.log("notification create")
+    function createNotification() {
         const xhr = new XMLHttpRequest();
-        console.log("test")
         xhr.open("POST", `${PROTOCOL}://${SERVER_URL}/api/notification`, true);
-        xhr.send(null);
+        xhr.send(JSON.stringify({ "body": document.getElementById('notification-body').value}));
     }
-
-    function connectToWs() {
-        const conn = new WebSocket("ws://" + SERVER_URL + "/ws");
-
-        conn.onclose = function (e) {
-            console.log(e);
-        }
-
-        conn.onmessage = function (e) {
-            const messages = e.data.split('\n');
-            for (let i = 0; i < messages.length; i++) {
-                alert(messages[i]);
-            }
-        }
-    }
-
-    connectToWs();
 </script>
 </body>
 </html>
