@@ -1,18 +1,18 @@
 version: '3.9'
 
 services:
-  app:
-    build: .
-    container_name: notice-me-server
-    ports:
-      - 8080:8080
-    depends_on:
-      mariadb:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - notice-me-server
+#  app:
+#    build: .
+#    container_name: notice-me-server
+#    ports:
+#      - 8080:8080
+#    depends_on:
+#      mariadb:
+#        condition: service_healthy
+#      rabbitmq:
+#        condition: service_healthy
+#    networks:
+#      - notice-me-server
   rabbitmq:
     image: rabbitmq:management
     environment:

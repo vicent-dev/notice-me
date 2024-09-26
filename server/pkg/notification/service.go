@@ -22,14 +22,15 @@ func CreateNotification(
 
 	nJson, _ := json.Marshal(n)
 
-	r.Produce(config.QueueConfig{
-		Name:       "notification.create",
-		Exchange:   "",
-		Durable:    false,
-		AutoDelete: false,
-		Exclusive:  false,
-		NoWait:     false,
-	}, nJson)
+	var queueConfig config.QueueConfig
+
+	for _, qc := range r.QueuesConfig {
+		if qc.Name == "notification.create" {
+			queueConfig = qc
+		}
+	}
+
+	r.Produce(queueConfig, nJson)
 
 	return n, nil
 }

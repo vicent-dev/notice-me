@@ -11,13 +11,13 @@ import (
 
 type Rabbit struct {
 	conn         *amqp.Connection
-	queuesConfig []config.QueueConfig
+	QueuesConfig []config.QueueConfig
 }
 
 func NewRabbit(conn *amqp.Connection, queuesConfig []config.QueueConfig) *Rabbit {
 	return &Rabbit{
 		conn:         conn,
-		queuesConfig: queuesConfig,
+		QueuesConfig: queuesConfig,
 	}
 }
 
@@ -26,7 +26,7 @@ func (r *Rabbit) declareQueues() {
 
 	defer ch.Close()
 
-	for _, queue := range r.queuesConfig {
+	for _, queue := range r.QueuesConfig {
 
 		_, _ = ch.QueueDeclare(
 			queue.Name,
@@ -41,9 +41,9 @@ func (r *Rabbit) declareQueues() {
 
 func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 	wg := sync.WaitGroup{}
-	wg.Add(len(r.queuesConfig))
+	wg.Add(len(r.QueuesConfig))
 
-	for _, queue := range r.queuesConfig {
+	for _, queue := range r.QueuesConfig {
 		alog.Info("Consuming from queue " + queue.Name)
 		go r.Consume(queue, callbacks)
 	}
@@ -54,8 +54,17 @@ func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(body []byte)) {
 	ch, _ := r.conn.Channel()
 
-	msgs, _ := ch.Consume(
+	q, _ := ch.QueueDeclare(
 		queue.Name,
+		queue.Durable,
+		queue.AutoDelete,
+		queue.Exclusive,
+		queue.NoWait,
+		nil,
+	)
+
+	msgs, _ := ch.Consume(
+		q.Name,
 		"",
 		true,
 		queue.Exclusive,
