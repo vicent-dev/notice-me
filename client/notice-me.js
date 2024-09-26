@@ -1,4 +1,4 @@
-const SERVER_URL = window.location.hostname + ':8080';
+const SERVER_URL = window.location.hostname + ':8090';
 
 const toastifyCallback = (body) => {
     Toastify({
@@ -10,7 +10,7 @@ const toastifyCallback = (body) => {
 }
 
 function noticeMe(callback)  {
-    const ws = new WebSocket(`ws://${SERVER_URL}/ws`);
+    const ws = new WebSocket(`wss://${SERVER_URL}/ws`);
 
     ws.onmessage = function(e) {
         const messages = e.data.split('\n');
