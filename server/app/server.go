@@ -46,7 +46,7 @@ func (s *server) Run() error {
 		r.RunConsumers(consumers)
 	}(s.amqp, s.c.Rabbit.Queues, s.consumersMap())
 
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	headersOk := handlers.AllowedHeaders([]string{"Origin", "X-Requested-With", "Content-Type", "Accept"})
 	originsOk := handlers.AllowedOrigins(s.c.Server.Cors)
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
