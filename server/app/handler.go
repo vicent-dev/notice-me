@@ -35,10 +35,33 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 
 func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 	ws := s.ws
+	cors := s.c.Server.Cors
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		websocket.Upgrader.CheckOrigin = func(r *http.Request) bool {
+			for _, host := range cors {
+				if host == r.Host {
+					return true
+				}
 
-		websocket.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+				if host == "*" {
+					return true
+				}
+			}
+
+			return false
+		}
+
+		id := r.URL.Query().Get("id")
+		group := r.URL.Query().Get("groupId")
+
+		if id == "" {
+			id = websocket.AllClientId
+		}
+
+		if group == "" {
+			group = websocket.AllClientGroupId
+		}
 
 		conn, err := websocket.Upgrader.Upgrade(w, r, nil)
 
@@ -46,7 +69,15 @@ func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			return
 		}
-		client := &websocket.Client{WebsocketService: ws, Conn: conn, Send: make(chan []byte, 256)}
+
+		client := &websocket.Client{
+			ID:               id,
+			GroupId:          group,
+			WebsocketService: ws,
+			Conn:             conn,
+			Send:             make(chan []byte, 256),
+		}
+
 		client.WebsocketService.Register <- client
 
 		go client.Write()

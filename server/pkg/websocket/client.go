@@ -7,6 +7,10 @@ import (
 
 // Client is a middleman between the websocket connection and the WebsocketService.
 type Client struct {
+	ID string
+
+	GroupId string
+
 	WebsocketService *Hub
 
 	// The websocket connection.
@@ -28,6 +32,9 @@ const (
 
 	// Maximum message size allowed from peer.
 	maxMessageSize = 512
+
+	AllClientId      = "*"
+	AllClientGroupId = "*"
 )
 
 var (

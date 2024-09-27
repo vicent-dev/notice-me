@@ -32,6 +32,22 @@ func NewHub() *Hub {
 	}
 }
 
+func (ws *Hub) GetClientsToNotify(clientId, clientGroupId string) []*Client {
+	var clients []*Client
+
+	for c := range ws.clients {
+		if c.GroupId == clientGroupId {
+			clients = append(clients, c)
+		}
+
+		if c.ID == clientId {
+			clients = append(clients, c)
+		}
+	}
+
+	return clients
+}
+
 func (ws *Hub) Run() {
 	for {
 		select {
