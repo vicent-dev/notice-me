@@ -15,7 +15,9 @@ func CreateNotification(
 	r *rabbit.Rabbit,
 ) (*Notification, error) {
 	n := &Notification{
-		Body: notificationPostDto.Body,
+		Body:          notificationPostDto.Body,
+		ClientId:      notificationPostDto.ClientId,
+		ClientGroupId: notificationPostDto.ClientGroupId,
 	}
 
 	repo.Create(n)
@@ -46,5 +48,14 @@ func ConsumeNotification(repo repository.Repository[Notification], ws *websocket
 	repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
 
 	// broadcast to all clients
-	ws.Broadcast <- []byte(n.FormatHTML())
+	if n.ClientId == websocket.AllClientId {
+		ws.Broadcast <- []byte(n.FormatHTML())
+		return
+	}
+
+	clients := ws.GetClientsToNotify(n.ClientId, n.ClientGroupId)
+
+	for _, client := range clients {
+		client.Send <- []byte(n.FormatHTML())
+	}
 }

@@ -7,12 +7,16 @@ import (
 
 type Notification struct {
 	gorm.Model
-	Body       string    `gorm:"body" json:"Body"`
-	NotifiedAt time.Time `gorm:"notified_at" json:"NotifiedAt"`
+	Body          string    `gorm:"body" json:"Body"`
+	NotifiedAt    time.Time `gorm:"notified_at" json:"NotifiedAt"`
+	ClientId      string    `gorm:"client_id" json:"clientId"`
+	ClientGroupId string    `gorm:"client_group_id" json:"clientGroupId"`
 }
 
 type NotificationPostDto struct {
-	Body string `json:"body"`
+	Body          string `json:"body"`
+	ClientId      string `json:"clientId"`
+	ClientGroupId string `json:"clientGroupId"`
 }
 
 func (n *Notification) FormatHTML() string {

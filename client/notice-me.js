@@ -9,8 +9,8 @@ const toastifyCallback = (body) => {
     }).showToast();
 }
 
-function noticeMe(callback)  {
-    const ws = new WebSocket(`wss://${SERVER_URL}/ws`);
+function noticeMe(id, groupId, callback)  {
+    const ws = new WebSocket(`ws://${SERVER_URL}/ws?id=${id}&groupId=${groupId}`);
 
     ws.onmessage = function(e) {
         const messages = e.data.split('\n');
