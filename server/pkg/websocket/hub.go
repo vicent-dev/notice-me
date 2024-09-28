@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"github.com/gorilla/websocket"
+	"slices"
 )
 
 type Hub struct {
@@ -36,11 +37,11 @@ func (ws *Hub) GetClientsToNotify(clientId, clientGroupId string) []*Client {
 	var clients []*Client
 
 	for c := range ws.clients {
-		if c.GroupId == clientGroupId {
+		if c.GroupId == clientGroupId && !slices.Contains(clients, c) {
 			clients = append(clients, c)
 		}
 
-		if c.ID == clientId {
+		if c.ID == clientId && !slices.Contains(clients, c) {
 			clients = append(clients, c)
 		}
 	}
