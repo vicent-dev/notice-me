@@ -16,11 +16,11 @@ services:
   rabbitmq:
     image: rabbitmq:management
     environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWORD}
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - ${RABBIT_MQ_PORT}:5672
+      - ${RABBIT_MQ_PORT_UI}:15672
     networks:
       - notice-me-server
     healthcheck:
@@ -32,12 +32,12 @@ services:
     image: mariadb:10.7
     container_name: mariadb-notice-me-server
     ports:
-      - 3306:3306
+      - ${MYSQL_PORT}:3306
     volumes:
       - dbvolume:/var/lib/mysql
     environment:
       - MYSQL_DATABASE=notice_me_server
-      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     networks:
       - notice-me-server
     healthcheck:
