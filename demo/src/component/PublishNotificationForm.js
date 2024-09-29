@@ -4,6 +4,7 @@ import {Grid} from "@mui/system";
 import Textarea from '@mui/joy/Textarea';
 import {api} from "../util/api";
 import {Typography} from "@mui/joy";
+import '../index.css';
 
 type PublishNotificationFormProps = {
   clientId: string;
@@ -30,8 +31,8 @@ export default function PublishNotificationForm({clientId, clientGroupId}: Publi
       <form onSubmit={handleSubmit}>
         <Grid mb={2} row spacing={2}>
           <ul>
-            <li>User ID: {clientId}</li>
-            <li>Group ID: {clientGroupId}</li>
+            <li>User ID: <b className={'pointerOnHover'} onClick={() => navigator.clipboard.writeText(clientId)}>{clientId}</b></li>
+            <li>Group ID: <b className={'pointerOnHover'} onClick={() => navigator.clipboard.writeText(clientGroupId)}>{clientGroupId}</b></li>
           </ul>
         </Grid>
 
