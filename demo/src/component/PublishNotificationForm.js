@@ -7,9 +7,10 @@ import {Typography} from "@mui/joy";
 
 type PublishNotificationFormProps = {
   clientId: string;
+  clientGroupId: string;
 }
 
-export default function PublishNotificationForm({clientId}: PublishNotificationFormProps) {
+export default function PublishNotificationForm({clientId, clientGroupId}: PublishNotificationFormProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -27,12 +28,18 @@ export default function PublishNotificationForm({clientId}: PublishNotificationF
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <Grid mb={2} container spacing={2}>
-          <Typography variant="subtitle1" component="p">Your User ID is <b>{clientId}</b>. Change Client Id
-            input value to "*" to publish to all clients on this server.</Typography>
+        <Grid mb={2} row spacing={2}>
+          <ul>
+            <li>User ID: {clientId}</li>
+            <li>Group ID: {clientGroupId}</li>
+          </ul>
         </Grid>
 
-        <Grid mb={2} container spacing={2}>
+        <Grid mb={2} row spacing={2}>
+          <Typography component="p">Change Client Id/Client Group Id input value to "*" to publish to all clients/groups on this server.</Typography>
+        </Grid>
+
+        <Grid mb={2} row spacing={2}>
           <TextField
             name="clientId"
             label="Client ID"
@@ -41,16 +48,16 @@ export default function PublishNotificationForm({clientId}: PublishNotificationF
             required
           />
         </Grid>
-        <Grid mb={2} container spacing={2}>
+        <Grid mb={2} row spacing={2}>
           <TextField
             name="clientGroupId"
             label="Client Group ID"
             variant="outlined"
-            defaultValue={"*"}
+            defaultValue={clientGroupId}
             required
           />
         </Grid>
-        <Grid mb={2} container spacing={2}>
+        <Grid mb={2} row spacing={2}>
           <Textarea
             size={"lg"}
             placeholder={"Write your notification body"}
@@ -60,7 +67,7 @@ export default function PublishNotificationForm({clientId}: PublishNotificationF
           />
         </Grid>
 
-        <Grid mb={2} container spacing={2}>
+        <Grid mb={2} row spacing={2}>
           <Button type="submit" variant="contained" color="primary">
             Publish Notification
           </Button>
