@@ -37,11 +37,11 @@ func (ws *Hub) GetClientsToNotify(clientId, clientGroupId string) []*Client {
 	var clients []*Client
 
 	for c := range ws.clients {
-		if c.GroupId == clientGroupId && !slices.Contains(clients, c) {
+		if c.GroupId == clientGroupId && c.GroupId != "" && !slices.Contains(clients, c) {
 			clients = append(clients, c)
 		}
 
-		if c.ID == clientId && !slices.Contains(clients, c) {
+		if c.ID == clientId && c.ID != "" && !slices.Contains(clients, c) {
 			clients = append(clients, c)
 		}
 	}
