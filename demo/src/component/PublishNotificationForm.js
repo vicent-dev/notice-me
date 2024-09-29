@@ -16,7 +16,7 @@ export default function PublishNotificationForm({clientId, clientGroupId}: Publi
 
     api().post('/notification', {
       "clientId": event.target.clientId.value,
-      "clientGroupId": event.target.clientGroupId.value,
+      "clientGroupId": event.target.clientGroupId.value ?? '',
       "body": event.target.body.value,
     })
       .then()
@@ -54,7 +54,6 @@ export default function PublishNotificationForm({clientId, clientGroupId}: Publi
             label="Client Group ID"
             variant="outlined"
             defaultValue={clientGroupId}
-            required
           />
         </Grid>
         <Grid mb={2} row spacing={2}>

@@ -48,7 +48,7 @@ func ConsumeNotification(repo repository.Repository[Notification], ws *websocket
 	repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
 
 	// broadcast to all clients
-	if n.ClientId == websocket.AllClientId {
+	if n.ClientId == websocket.AllClientId || n.ClientGroupId == websocket.AllClientGroupId {
 		ws.Broadcast <- []byte(n.FormatHTML())
 		return
 	}
