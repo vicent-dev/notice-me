@@ -1,6 +1,6 @@
 import './App.css';
 import {Grid} from "@mui/system";
-import {Box, Typography} from "@mui/joy";
+import {Box} from "@mui/joy";
 import NoticeMe from "./component/NoticeMe";
 import PublishNotificationForm from "./component/PublishNotificationForm";
 
