@@ -1,38 +1,47 @@
 import {getWebsocketBaseURL} from "../util/api";
 import toast, { Toaster } from 'react-hot-toast';
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useRef} from "react";
 
-type NoticeMeProps = {
-  clientId: string;
-  clientGroupId: null|string;
-};
-
-export default function NoticeMe({clientId, clientGroupId}: NoticeMeProps) {
-
-  const [ws, setWs] = useState(null);
+export default function NoticeMe({clientId, clientGroupId}) {
+  const clientRef = useRef(null);
+  const [waitingToReconnect, setWaitingToReconnect] = useState(null);
 
   useEffect(() => {
-    const wsCnn = new WebSocket(`${getWebsocketBaseURL()}/ws?id=${clientId}&groupId=${clientGroupId}`);
-
-    wsCnn.onopen = () => {
-      setWs(wsCnn);
-    };
-
-    return () => {
-      wsCnn.close();
+    if (waitingToReconnect) {
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    if (!ws) return;
+    // Only set up the websocket once
+    if (!clientRef.current) {
+      const client = new WebSocket(`${getWebsocketBaseURL()}/ws?id=${clientId}&groupId=${clientGroupId}`);
+      clientRef.current = client;
 
-    ws.onmessage = e => {
-      toast.success((t) => <>
-        <span dangerouslySetInnerHTML={{__html: e.data}}></span>
-      </>);
-    };
-  }, [ws]);
+      window.client = client;
 
+      client.onerror = (e) => console.error(e);
+
+      client.onclose = () => {
+        if (waitingToReconnect) {
+          return;
+        };
+
+        setWaitingToReconnect(true);
+        setTimeout(() => setWaitingToReconnect(null), 1000);
+      };
+
+      client.onmessage = message => {
+        toast.success(() => <>
+          <span dangerouslySetInnerHTML={{__html: message.data}}></span>
+        </>);
+      };
+
+
+      return () => {
+        clientRef.current = null;
+        client.close();
+      }
+    }
+  }, [clientGroupId, clientId, waitingToReconnect]);
 
   return <>
     <Toaster
