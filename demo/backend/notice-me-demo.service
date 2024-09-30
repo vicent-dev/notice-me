@@ -1,0 +1,13 @@
+[Unit]
+Description=NoticeMe demo service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+ExecStart=/var/www/noticeme/demo/backend/notice-me-demo
+
+[Install]
+WantedBy=multi-user.target
