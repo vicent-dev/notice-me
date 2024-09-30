@@ -1,1 +1,1 @@
-watch -n1 ./notice-me-demo
+while true ; do ./notice-me-demo & sleep 3; done
