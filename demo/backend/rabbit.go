@@ -5,16 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"os"
 	"time"
 )
 
-func connectRabbit() *amqp.Connection {
+func connectRabbit(c *config) *amqp.Connection {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/",
-		os.Getenv("RABBIT_USER"),
-		os.Getenv("RABBIT_PASSWORD"),
-		os.Getenv("RABBIT_HOST"),
-		os.Getenv("RABBIT_PORT"),
+		c.rabbit.user,
+		c.rabbit.pwd,
+		c.rabbit.host,
+		c.rabbit.port,
 	))
 
 	if err != nil {
