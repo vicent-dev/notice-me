@@ -6,13 +6,13 @@ import (
 	"log"
 	"net/http"
 	"notice-me-server/pkg/notification"
-	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
+
+	"github.com/gorilla/mux"
 )
 
 func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
-	rab := rabbit.NewRabbit(s.amqp, s.c.Rabbit.Queues)
 	repo := repository.GetRepository[notification.Notification](s.db)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -28,8 +28,44 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 			return
 		}
 
-		notification.CreateNotification(notificationPostDto, repo, rab)
-		s.writeResponse(w, nil)
+		n, err := notification.CreateNotification(notificationPostDto, repo)
+
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusInternalServerError)
+		}
+
+		s.writeResponse(w, n)
+	}
+}
+
+func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.Request) {
+	repo := repository.GetRepository[notification.Notification](s.db)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		// @todo add pagination
+		ns, err := notification.GetNotifications(repo)
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		s.writeResponse(w, ns)
+	}
+}
+
+func (s *server) deleteNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
+	repo := repository.GetRepository[notification.Notification](s.db)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
+
+		err := notification.DeleteNotification(id, repo)
+
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+		}
+
+		s.writeResponse(w, r)
 	}
 }
 
