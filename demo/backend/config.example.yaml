@@ -1,0 +1,11 @@
+db:
+  user: root
+  pwd: root
+  port: 3306
+  host: mariadb
+  name: notice_me_server
+rabbit:
+  user: guest
+  pwd: guest
+  port: 5672
+  host: rabbit

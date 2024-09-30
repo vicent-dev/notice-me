@@ -6,17 +6,16 @@ import (
 	"github.com/en-vee/alog"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"os"
 )
 
-func connectDb() *sql.DB {
+func connectDb(c *config) *sql.DB {
 	db, err := sql.Open("mysql", fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		os.Getenv("MYSQL_USER"),
-		os.Getenv("MYSQL_PASSWORD"),
-		os.Getenv("MYSQL_HOST"),
-		os.Getenv("MYSQL_PORT"),
-		os.Getenv("MYSQL_SCHEMA"),
+		c.db.user,
+		c.db.pwd,
+		c.db.host,
+		c.db.port,
+		c.db.name,
 	))
 
 	if err != nil {

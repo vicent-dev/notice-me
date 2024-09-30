@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/en-vee/alog"
-	"github.com/joho/godotenv"
-	"log"
 )
 
 // This demo service will fetch notifications and send them to the notify queue.
@@ -12,14 +10,10 @@ import (
 // notification task after X business logic process finishes.
 
 func main() {
-	err := godotenv.Load(".env")
+	c := loadConfig()
 
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	db := connectDb()
-	rabbit := connectRabbit()
+	db := connectDb(c)
+	rabbit := connectRabbit(c)
 
 	defer db.Close()
 	defer rabbit.Close()
