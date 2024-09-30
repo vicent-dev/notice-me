@@ -9,8 +9,8 @@ type Notification struct {
 	gorm.Model
 	Body          string    `gorm:"body" json:"Body"`
 	NotifiedAt    time.Time `gorm:"notified_at" json:"NotifiedAt"`
-	ClientId      string    `gorm:"client_id" json:"clientId"`
-	ClientGroupId string    `gorm:"client_group_id" json:"clientGroupId"`
+	ClientId      string    `gorm:"client_id" json:"ClientId"`
+	ClientGroupId string    `gorm:"client_group_id" json:"ClientGroupId"`
 }
 
 type NotificationPostDto struct {

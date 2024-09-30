@@ -19,7 +19,7 @@ rabbit:
   enabled: true
   queues:
     -
-      name: notification.create
+      name: notification.notify
       exchange: notification
       durable: true
       autoDelete: false

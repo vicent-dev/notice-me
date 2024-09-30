@@ -2,17 +2,15 @@ package notification
 
 import (
 	"encoding/json"
-	"notice-me-server/pkg/config"
-	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
+	"strconv"
 	"time"
 )
 
 func CreateNotification(
 	notificationPostDto *NotificationPostDto,
 	repo repository.Repository[Notification],
-	r *rabbit.Rabbit,
 ) (*Notification, error) {
 	n := &Notification{
 		Body:          notificationPostDto.Body,
@@ -22,29 +20,48 @@ func CreateNotification(
 
 	repo.Create(n)
 
-	nJson, _ := json.Marshal(n)
-
-	var queueConfig config.QueueConfig
-
-	for _, qc := range r.QueuesConfig {
-		if qc.Name == "notification.create" {
-			queueConfig = qc
-		}
-	}
-
-	r.Produce(queueConfig, nJson)
-
 	return n, nil
 }
 
-func ConsumeNotification(repo repository.Repository[Notification], ws *websocket.Hub, body []byte) {
+func GetNotifications(
+	repo repository.Repository[Notification],
+) ([]*Notification, error) {
 
+	return repo.FindBy()
+}
+
+func DeleteNotification(
+	id string,
+	repo repository.Repository[Notification],
+) error {
+	idInt, err := strconv.Atoi(id)
+
+	if err != nil {
+		return err
+	}
+
+	n, err := repo.Find(uint(idInt))
+
+	if err != nil {
+		return err
+	}
+
+	err = repo.Delete(n)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ConsumeNotification(repo repository.Repository[Notification], ws *websocket.Hub, body []byte) {
 	//update notification
 	n := &Notification{}
 
 	json.Unmarshal(body, n)
 
-	repo.Find(n.ID)
+	n, _ = repo.Find(n.ID)
 	repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
 
 	// broadcast to all clients

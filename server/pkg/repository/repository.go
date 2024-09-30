@@ -14,8 +14,8 @@ var (
 type Repository[T Entity] interface {
 	Find(id uint) (*T, error)
 	FindWithRelations(id int) (*T, error)
-	FindBy(fs ...Field) ([]T, error)
-	FindByWithRelations(fs ...Field) ([]T, error)
+	FindBy(fs ...Field) ([]*T, error)
+	FindByWithRelations(fs ...Field) ([]*T, error)
 	FindFirstBy(fs ...Field) (*T, error)
 	CreateBulk(ts []T) error
 	Create(t *T) error

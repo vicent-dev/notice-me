@@ -52,8 +52,8 @@ func (r Gorm[T]) FindWithRelations(id int) (*T, error) {
 	return &t, nil
 }
 
-func (r Gorm[T]) FindByWithRelations(fs ...Field) ([]T, error) {
-	var t []T
+func (r Gorm[T]) FindByWithRelations(fs ...Field) ([]*T, error) {
+	var t []*T
 
 	whereClause := make(map[string]interface{}, len(fs))
 
@@ -70,8 +70,8 @@ func (r Gorm[T]) FindByWithRelations(fs ...Field) ([]T, error) {
 	return t, nil
 }
 
-func (r Gorm[T]) FindBy(fs ...Field) ([]T, error) {
-	var t []T
+func (r Gorm[T]) FindBy(fs ...Field) ([]*T, error) {
+	var t []*T
 
 	whereClause := make(map[string]interface{}, len(fs))
 
@@ -95,7 +95,7 @@ func (r Gorm[T]) FindFirstBy(fs ...Field) (*T, error) {
 	}
 
 	if len(ts) >= 1 {
-		return &ts[0], nil
+		return ts[0], nil
 	}
 
 	return nil, errors.New("record not found")

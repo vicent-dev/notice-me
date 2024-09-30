@@ -1,28 +1,23 @@
 import {Button, TextField} from "@mui/material";
-import {FormEvent} from "react";
 import {Grid} from "@mui/system";
 import Textarea from '@mui/joy/Textarea';
 import {api} from "../util/api";
 import {Typography} from "@mui/joy";
 import '../index.css';
+import toast from "react-hot-toast";
 
-type PublishNotificationFormProps = {
-  clientId: string;
-  clientGroupId: string;
-}
-
-export default function PublishNotificationForm({clientId, clientGroupId}: PublishNotificationFormProps) {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+export default function PublishNotificationForm({clientId, clientGroupId, setRefreshNotifications}) {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
-    api().post('/notification', {
+    api().post('/notifications', {
       "clientId": event.target.clientId.value,
       "clientGroupId": event.target.clientGroupId.value ?? '',
       "body": event.target.body.value,
     })
-      .then()
+      .then(() => setRefreshNotifications(true))
       .catch((error) => {
-        console.log(error);
+        toast.error(error);
       });
   }
 
