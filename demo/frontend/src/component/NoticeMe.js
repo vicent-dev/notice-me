@@ -33,6 +33,7 @@ export default function NoticeMe({clientId, clientGroupId, setRefreshNotificatio
         toast.success(() => <>
           <span dangerouslySetInnerHTML={{__html: message.data}}></span>
         </>);
+        setRefreshNotifications(true)
       };
 
 
