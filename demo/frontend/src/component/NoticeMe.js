@@ -2,7 +2,7 @@ import {getWebsocketBaseURL} from "../util/api";
 import toast, { Toaster } from 'react-hot-toast';
 import React, {useEffect, useState, useRef} from "react";
 
-export default function NoticeMe({clientId, clientGroupId}) {
+export default function NoticeMe({clientId, clientGroupId, setRefreshNotifications}) {
   const clientRef = useRef(null);
   const [waitingToReconnect, setWaitingToReconnect] = useState(null);
 
@@ -23,7 +23,7 @@ export default function NoticeMe({clientId, clientGroupId}) {
       client.onclose = () => {
         if (waitingToReconnect) {
           return;
-        };
+        }
 
         setWaitingToReconnect(true);
         setTimeout(() => setWaitingToReconnect(null), 1000);
@@ -33,6 +33,7 @@ export default function NoticeMe({clientId, clientGroupId}) {
         toast.success(() => <>
           <span dangerouslySetInnerHTML={{__html: message.data}}></span>
         </>);
+        setRefreshNotifications(true)
       };
 
 

@@ -11,29 +11,37 @@ export default function NotificationsList({refreshNotifications, setRefreshNotif
   function fetchNotifications() {
     api().get('/notifications')
       .then((result) => {
-        setNotifications(result.data);
+        if (result && result.data) {
+          setNotifications(result.data);
+        } else {
+          setNotifications([]);
+        }
       })
       .catch((error) => {
-        toast.error(error)
+        console.log(error)
+        toast.error('Something went wrong, try again later');
         setNotifications([]);
       });
   }
 
   useEffect(() => {
     if (refreshNotifications) {
-        setRefreshNotifications(false);
-        setNotifications(null);
-        fetchNotifications();
+      setRefreshNotifications(false);
+      setNotifications(null);
+      fetchNotifications();
     }
   }, [notifications, setRefreshNotifications, refreshNotifications]);
 
-  function deleteNotification(id){
+  function deleteNotification(id) {
     api()
       .delete(`/notifications/${id}`)
       .then(() => {
         setRefreshNotifications(true);
       })
-      .catch((error) => toast.error(error));
+      .catch((error) => {
+        console.log(error)
+        toast.error('Something went wrong, try again later');
+      });
   }
 
 
@@ -68,7 +76,7 @@ export default function NotificationsList({refreshNotifications, setRefreshNotif
     {
       field: 'ID',
       headerName: '',
-      renderCell: (params) =>  (
+      renderCell: (params) => (
         <Button
           variant="contained"
           size="small"
@@ -81,28 +89,36 @@ export default function NotificationsList({refreshNotifications, setRefreshNotif
     }
   ];
 
-  if (notifications === null) {
-    return <CircularProgress />
-  }
-
-  return ( notifications.length > 0 && (
+  return (
     <Box mt={2}>
       <h2>Notifications list </h2>
-      <DataGrid
-        rows={notifications}
-        columns={columns}
-        initialState={{
-          pagination: {
-            paginationModel: {
-              pageSize: 100,
-            },
-          },
-        }}
-        pageSizeOptions={[5]}
-        checkboxSelection
-        disableRowSelectionOnClick
-        getRowId={(row: any) => row.ID}
-      />
+      {
+        null === notifications ? (
+          <CircularProgress/>
+        ) : (
+          <Box sx={{ width: '80%' }}>
+          <DataGrid
+            autoPageSize={true}
+            rows={notifications}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: {
+                  pageSize: 100,
+                },
+              },
+              sorting: {
+                sortModel: [{ field: 'CreatedAt', sort: 'desc' }],
+              },
+            }}
+            pageSizeOptions={[5]}
+            checkboxSelection
+            disableRowSelectionOnClick
+            getRowId={(row: any) => row.ID}
+          />
+          </Box>
+        )
+      }
     </Box>
-  ));
+  );
 }

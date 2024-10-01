@@ -1,8 +1,6 @@
 import {Button, TextField} from "@mui/material";
 import {Grid} from "@mui/system";
-import Textarea from '@mui/joy/Textarea';
 import {api} from "../util/api";
-import {Typography} from "@mui/joy";
 import '../index.css';
 import toast from "react-hot-toast";
 
@@ -17,25 +15,25 @@ export default function PublishNotificationForm({clientId, clientGroupId, setRef
     })
       .then(() => setRefreshNotifications(true))
       .catch((error) => {
-        toast.error(error);
+        console.log(error);
+        toast.error('Something went wrong, try again later');
       });
   }
 
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <Grid mb={2} row spacing={2}>
+        <Grid mb={4} item spacing={2}>
+          <h4>Change Client Id/Client Group Id input value to "*" to publish to all clients/groups on this server.</h4>
           <ul>
-            <li>User ID: <b className={'pointerOnHover'} onClick={() => navigator.clipboard.writeText(clientId)}>{clientId}</b></li>
-            <li>Group ID: <b className={'pointerOnHover'} onClick={() => navigator.clipboard.writeText(clientGroupId)}>{clientGroupId}</b></li>
+            <li>User ID: <b className={'pointerOnHover'}
+                            onClick={() => navigator.clipboard.writeText(clientId)}>{clientId}</b></li>
+            <li>Group ID: <b className={'pointerOnHover'}
+                             onClick={() => navigator.clipboard.writeText(clientGroupId)}>{clientGroupId}</b></li>
           </ul>
         </Grid>
 
-        <Grid mb={2} row spacing={2}>
-          <Typography component="p">Change Client Id/Client Group Id input value to "*" to publish to all clients/groups on this server.</Typography>
-        </Grid>
-
-        <Grid mb={2} row spacing={2}>
+        <Grid mb={2} item>
           <TextField
             name="clientId"
             label="Client ID"
@@ -44,7 +42,7 @@ export default function PublishNotificationForm({clientId, clientGroupId, setRef
             required
           />
         </Grid>
-        <Grid mb={2} row spacing={2}>
+        <Grid mb={2} item>
           <TextField
             name="clientGroupId"
             label="Client Group ID"
@@ -52,17 +50,18 @@ export default function PublishNotificationForm({clientId, clientGroupId, setRef
             defaultValue={clientGroupId}
           />
         </Grid>
-        <Grid mb={2} row spacing={2}>
-          <Textarea
-            size={"lg"}
-            placeholder={"Write your notification body"}
+        <Grid mb={2} item>
+          <TextField
             name="body"
-            required
+            label="Body"
+            variant="outlined"
+            placeholder={"Write your notification body"}
             defaultValue={'foo bar'}
+            required
           />
         </Grid>
 
-        <Grid mb={2} row spacing={2}>
+        <Grid mb={2} item spacing={2}>
           <Button type="submit" variant="contained" color="primary">
             Publish Notification
           </Button>

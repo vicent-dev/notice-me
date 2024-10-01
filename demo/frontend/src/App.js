@@ -29,7 +29,6 @@ function App() {
       <Grid
         container
         direction="column"
-        alignItems="center"
         justifyContent="center"
       >
         <Box mb={2}>
@@ -46,7 +45,11 @@ function App() {
           setRefreshNotifications={setRefreshNotifications}
         />
       </Grid>
-      <NoticeMe clientId={clientId} clientGroupId={clientGroupId}/>
+      <NoticeMe
+        clientId={clientId}
+        clientGroupId={clientGroupId}
+        setRefreshNotifications={setRefreshNotifications}
+      />
     </>
   );
 }
