@@ -51,9 +51,9 @@ func getNotificationsPending(db *sql.DB) []*Notification {
 }
 
 func deleteOldNotifications(db *sql.DB) {
-	deleteCreatedAtTime := time.Now().Local().Add(time.Hour)
+	deleteCreatedAtTime := time.Now().Local().Add(time.Duration(-1) * time.Hour)
 
-	rows, err := db.Exec("DELETE FROM notifications WHERE notified_at IS NOT NULL AND created_at > \"" + deleteCreatedAtTime.Format(time.DateTime) + "\"")
+	rows, err := db.Exec("DELETE FROM notifications WHERE notified_at IS NOT NULL AND created_at < \"" + deleteCreatedAtTime.Format(time.DateTime) + "\"")
 
 	if err != nil {
 		alog.Error("Error trying to delete old notifications " + err.Error())
@@ -62,5 +62,5 @@ func deleteOldNotifications(db *sql.DB) {
 
 	rowsAffected, _ := rows.RowsAffected()
 
-	alog.Info("Number of old notifications deleted: " + strconv.Itoa(int(rowsAffected)))
+	alog.Info("Number of old (" + deleteCreatedAtTime.Format(time.DateTime) + ") notifications deleted: " + strconv.Itoa(int(rowsAffected)))
 }
