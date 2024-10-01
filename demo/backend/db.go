@@ -26,7 +26,7 @@ func connectDb(c *config) *sql.DB {
 }
 
 func getNotificationsPending(db *sql.DB) []*Notification {
-	rows, err := db.Query("SELECT id FROM notifications WHERE notified_at IS NULL")
+	rows, err := db.Query("SELECT id FROM notifications WHERE notified_at IS NULL AND deleted_at IS NOT NULL")
 	var notifications []*Notification
 
 	if err != nil {
