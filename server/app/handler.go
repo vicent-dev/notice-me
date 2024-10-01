@@ -117,5 +117,6 @@ func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 		client.WebsocketService.Register <- client
 
 		go client.Write()
+		go client.Read()
 	}
 }

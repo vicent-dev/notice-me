@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"github.com/en-vee/alog"
 	"github.com/gorilla/websocket"
 	"time"
 )
@@ -41,6 +42,26 @@ var (
 	newline = []byte{'\n'}
 	space   = []byte{' '}
 )
+
+func (c *Client) Read() {
+	defer func() {
+		c.WebsocketService.unregister <- c
+		c.Conn.Close()
+		alog.Info("client disconnected " + c.ID)
+	}()
+	c.Conn.SetReadLimit(maxMessageSize)
+	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.Conn.SetPongHandler(func(string) error { c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	for {
+		_, _, err := c.Conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				alog.Error("Err unexpected close client" + err.Error())
+			}
+			break
+		}
+	}
+}
 
 func (c *Client) Write() {
 	ticker := time.NewTicker(pingPeriod)
