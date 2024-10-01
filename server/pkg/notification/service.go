@@ -2,6 +2,7 @@ package notification
 
 import (
 	"encoding/json"
+	"github.com/en-vee/alog"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
 	"strconv"
@@ -57,11 +58,17 @@ func DeleteNotification(
 
 func ConsumeNotification(repo repository.Repository[Notification], ws *websocket.Hub, body []byte) {
 	//update notification
-	n := &Notification{}
+	queueNotification := &Notification{}
 
-	json.Unmarshal(body, n)
+	json.Unmarshal(body, queueNotification)
 
-	n, _ = repo.Find(n.ID)
+	n, err := repo.Find(queueNotification.ID)
+
+	if err != nil {
+		alog.Error("Error consuming message " + string(body))
+		return
+	}
+
 	repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
 
 	// broadcast to all clients
