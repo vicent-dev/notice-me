@@ -10,10 +10,10 @@ import (
 
 func connectRabbit(c *config) *amqp.Connection {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/",
-		c.rabbit.user,
-		c.rabbit.pwd,
-		c.rabbit.host,
-		c.rabbit.port,
+		c.Rabbit.User,
+		c.Rabbit.Pwd,
+		c.Rabbit.Host,
+		c.Rabbit.Port,
 	))
 
 	if err != nil {

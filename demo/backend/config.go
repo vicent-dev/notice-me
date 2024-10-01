@@ -14,18 +14,18 @@ const (
 )
 
 type config struct {
-	db struct {
-		user string `yaml:"user"`
-		pwd  string `yaml:"pwd"`
-		port string `yaml:"port"`
-		host string `yaml:"host"`
-		name string `yaml:"name"`
+	Db struct {
+		User string `yaml:"user"`
+		Pwd  string `yaml:"pwd"`
+		Port string `yaml:"port"`
+		Host string `yaml:"host"`
+		Name string `yaml:"name"`
 	} `yaml:"db"`
-	rabbit struct {
-		user string `yaml:"user"`
-		pwd  string `yaml:"pwd"`
-		port string `yaml:"port"`
-		host string `yaml:"host"`
+	Rabbit struct {
+		User string `yaml:"user"`
+		Pwd  string `yaml:"pwd"`
+		Port string `yaml:"port"`
+		Host string `yaml:"host"`
 	} `yaml:"rabbit"`
 }
 

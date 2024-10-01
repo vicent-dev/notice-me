@@ -11,11 +11,11 @@ import (
 func connectDb(c *config) *sql.DB {
 	db, err := sql.Open("mysql", fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		c.db.user,
-		c.db.pwd,
-		c.db.host,
-		c.db.port,
-		c.db.name,
+		c.Db.User,
+		c.Db.Pwd,
+		c.Db.Host,
+		c.Db.Port,
+		c.Db.Name,
 	))
 
 	if err != nil {
