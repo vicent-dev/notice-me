@@ -25,4 +25,5 @@ func main() {
 	}
 
 	alog.Info(fmt.Sprintf("%v notifications sent to notify to notice-me service", len(notifications)))
+	deleteOldNotifications(db)
 }
