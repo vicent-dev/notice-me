@@ -26,13 +26,13 @@ export default function NotificationsList({refreshNotifications, setRefreshNotif
 
   useEffect(() => {
     if (refreshNotifications) {
-      setRefreshNotifications(false);
-      setNotifications(null);
-      fetchNotifications();
+        setRefreshNotifications(false);
+        setNotifications(null);
+        fetchNotifications();
     }
   }, [notifications, setRefreshNotifications, refreshNotifications]);
 
-  function deleteNotification(id) {
+  function deleteNotification(id){
     api()
       .delete(`/notifications/${id}`)
       .then(() => {
