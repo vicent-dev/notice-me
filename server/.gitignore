@@ -1,3 +1,4 @@
 static/config.yaml
 build/
 .env
+main
