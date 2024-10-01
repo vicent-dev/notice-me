@@ -5,7 +5,7 @@ StartLimitIntervalSec=0
 [Service]
 Type=simple
 Restart=always
-RestartSec=1
+RestartSec=5
 User=root
 ExecStart=/var/www/noticeme/demo/backend/notice-me-demo
 
