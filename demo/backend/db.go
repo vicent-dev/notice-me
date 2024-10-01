@@ -6,6 +6,8 @@ import (
 	"github.com/en-vee/alog"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"strconv"
+	"time"
 )
 
 func connectDb(c *config) *sql.DB {
@@ -46,4 +48,19 @@ func getNotificationsPending(db *sql.DB) []*Notification {
 	}
 
 	return notifications
+}
+
+func deleteOldNotifications(db *sql.DB) {
+	deleteCreatedAtTime := time.Now().Local().Add(time.Hour)
+
+	rows, err := db.Exec("DELETE FROM notifications WHERE notified_at IS NOT NULL AND created_at > " + deleteCreatedAtTime.Format(time.RFC3339))
+
+	if err != nil {
+		alog.Error("Error trying to delete old notifications " + err.Error())
+		return
+	}
+
+	rowsAffected, _ := rows.RowsAffected()
+
+	alog.Info("Number of old notifications deleted: " + strconv.Itoa(int(rowsAffected)))
 }
