@@ -15,6 +15,7 @@ services:
 #      - notice-me-server
   rabbitmq:
     image: rabbitmq:management
+    restart: always
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWORD}
@@ -30,6 +31,7 @@ services:
       retries: 10
   mariadb:
     image: mariadb:10.7
+    restart: always
     container_name: mariadb-notice-me-server
     ports:
       - ${MYSQL_PORT}:3306

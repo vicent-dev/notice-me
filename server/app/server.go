@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"github.com/en-vee/alog"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -36,6 +37,21 @@ func NewServer() *server {
 }
 
 func (s *server) Run() error {
+
+	defer func() {
+		err := s.amqp.Close()
+		if err != nil {
+			alog.Error("Error closing amqp connection: " + err.Error())
+		}
+	}()
+
+	defer func() {
+		dbInstance, _ := s.db.DB()
+		err := dbInstance.Close()
+		if err != nil {
+			alog.Error("Error closing sql connection: " + err.Error())
+		}
+	}()
 
 	go func(websocket *websocket.Hub) {
 		websocket.Run()
