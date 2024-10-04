@@ -45,7 +45,7 @@ export default function NotificationsList({refreshNotifications, setRefreshNotif
   }
 
 
-  const columns: GridColDef<>[] = [
+  const columns = [
     {
       field: 'ClientId',
       headerName: 'Client Id',
@@ -90,35 +90,35 @@ export default function NotificationsList({refreshNotifications, setRefreshNotif
   ];
 
   return (
-    <Box mt={2}>
+    <>
       <h2>Notifications list </h2>
       {
         null === notifications ? (
           <CircularProgress/>
         ) : (
-          <Box sx={{ width: '80%' }}>
-          <DataGrid
-            autoPageSize={true}
-            rows={notifications}
-            columns={columns}
-            initialState={{
-              pagination: {
-                paginationModel: {
-                  pageSize: 100,
+          <div style={{ height: 400, width: '100%' }}>
+            <DataGrid
+              autoPageSize={true}
+              rows={notifications}
+              columns={columns}
+              initialState={{
+                pagination: {
+                  paginationModel: {
+                    pageSize: 100,
+                  },
                 },
-              },
-              sorting: {
-                sortModel: [{ field: 'CreatedAt', sort: 'desc' }],
-              },
-            }}
-            pageSizeOptions={[5]}
-            checkboxSelection
-            disableRowSelectionOnClick
-            getRowId={(row: any) => row.ID}
-          />
-          </Box>
+                sorting: {
+                  sortModel: [{ field: 'CreatedAt', sort: 'desc' }],
+                },
+              }}
+              pageSizeOptions={[5]}
+              checkboxSelection
+              disableRowSelectionOnClick
+              getRowId={(row: any) => row.ID}
+            />
+          </div>
         )
       }
-    </Box>
+    </>
   );
 }
