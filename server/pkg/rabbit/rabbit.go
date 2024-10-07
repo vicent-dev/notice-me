@@ -60,7 +60,12 @@ func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 
 func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(body []byte), consumerKey string) {
 	ch, _ := r.conn.Channel()
-	defer ch.Close()
+
+	defer func() {
+		if err := ch.Close(); err != nil {
+			alog.Error("Error closing channel: " + err.Error())
+		}
+	}()
 
 	err := ch.ExchangeDeclare(
 		queue.Exchange,
@@ -127,7 +132,11 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
 	ch, _ := r.conn.Channel()
 
-	defer ch.Close()
+	defer func() {
+		if err := ch.Close(); err != nil {
+			alog.Error("Error closing channel: " + err.Error())
+		}
+	}()
 
 	err := ch.ExchangeDeclare(
 		queue.Exchange,
