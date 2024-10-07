@@ -85,6 +85,18 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 		nil,
 	)
 
+	err = ch.QueueBind(q.Name,
+		queue.Name,
+		queue.Exchange,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		alog.Error("Error binding queue consumer: " + err.Error())
+		return
+	}
+
 	msgs, _ := ch.Consume(
 		q.Name,
 		consumerKey,
@@ -144,7 +156,7 @@ func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
 	defer cancel()
 
 	return ch.PublishWithContext(ctx,
-		"", //@todo change exchange config
+		queue.Exchange,
 		q.Name,
 		false,
 		false,
