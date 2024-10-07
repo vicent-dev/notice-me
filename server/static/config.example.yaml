@@ -25,4 +25,10 @@ rabbit:
       autoDelete: false
       exclusive: false
       noWait: false
-
+    -
+      name: notification.create
+      exchange: notification
+      durable: true
+      autoDelete: false
+      exclusive: false
+      noWait: false
