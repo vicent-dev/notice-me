@@ -144,7 +144,7 @@ func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
 	defer cancel()
 
 	return ch.PublishWithContext(ctx,
-		queue.Exchange,
+		"", //@todo change exchange config
 		q.Name,
 		false,
 		false,
