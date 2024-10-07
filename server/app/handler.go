@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -77,8 +76,6 @@ func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.R
 			s.writeErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
-
-		fmt.Printf("page: %d, pageSize: %d\n", page, pageSize)
 
 		ns, err := notification.GetNotifications(repo, pageSizeInt, pageInt)
 		if err != nil {

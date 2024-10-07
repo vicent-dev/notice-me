@@ -18,7 +18,7 @@ This would be a very basic data flow with Notice-me:
 - user does something in your system that will trigger eventually a notification. (e.g. complex import process of data that will probably take some time to finish).
 - notification is created in Notice-me via http POST request.
 - eventually your system will finish your process related with the notification  (e.g. all the data is finally imported in your system).
-- publish from your system into queue `notification.notify` with the notification ID that you will recieve from create endpoint.
+- publish from your system into queue `notification.notify` with the notification ID that you will recieve from create endpoint. (@todo generate uuid non-persistence related)
 - Notice-me will consume that message and broadcast that notification to all fronted clients that matches the configured criteria.
 
 
@@ -27,7 +27,7 @@ This would be a very basic data flow with Notice-me:
 There is two basic ways to interact with Notice-me:
 
 - **http**: endpoints are for the websocket connection and for the CRUD of notifications (swagger documentation pending).
-- **amqp**: one consumer for `notification.notify` queue which objective is to notify a notification and marked it as notified.
+- **amqp**: one consumer for `notification.notify` queue which objective is to notify a notification and marked it as notified. Other consumer to create notifications async for queue `notification.create`.
 
 At the moment the demo just reads the pending notifications and publish them into the notification queue which means that 
 the notifications will be notified when the backend demo is executed.
