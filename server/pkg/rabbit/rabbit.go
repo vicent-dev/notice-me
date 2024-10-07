@@ -2,22 +2,26 @@ package rabbit
 
 import (
 	"context"
-	"github.com/en-vee/alog"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"notice-me-server/pkg/config"
+	"strconv"
 	"sync"
 	"time"
+
+	"github.com/en-vee/alog"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Rabbit struct {
-	conn         *amqp.Connection
-	QueuesConfig []config.QueueConfig
+	conn           *amqp.Connection
+	consumersCount int
+	QueuesConfig   []config.QueueConfig
 }
 
-func NewRabbit(conn *amqp.Connection, queuesConfig []config.QueueConfig) *Rabbit {
+func NewRabbit(conn *amqp.Connection, consumersCount int, queuesConfig []config.QueueConfig) *Rabbit {
 	return &Rabbit{
-		conn:         conn,
-		QueuesConfig: queuesConfig,
+		conn:           conn,
+		consumersCount: consumersCount,
+		QueuesConfig:   queuesConfig,
 	}
 }
 
@@ -41,11 +45,13 @@ func (r *Rabbit) declareQueues() {
 
 func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 	wg := sync.WaitGroup{}
-	wg.Add(len(r.QueuesConfig))
+	wg.Add(len(r.QueuesConfig) * r.consumersCount)
 
 	for _, queue := range r.QueuesConfig {
-		alog.Info("Consuming from queue " + queue.Name)
-		go r.Consume(queue, callbacks)
+		for cc := range r.consumersCount {
+			alog.Info("Consumer [" + strconv.Itoa(cc) + "] consuming from queue " + queue.Name)
+			go r.Consume(queue, callbacks)
+		}
 	}
 
 	wg.Wait()

@@ -33,12 +33,12 @@ type Config struct {
 		Name string `yaml:"name"`
 	} `yaml:"db"`
 	Rabbit struct {
-		User    string        `yaml:"user"`
-		Pwd     string        `yaml:"pwd"`
-		Port    string        `yaml:"port"`
-		Host    string        `yaml:"host"`
-		Queues  []QueueConfig `yaml:"queues"`
-		Enabled bool          `yaml:"enabled"`
+		User           string        `yaml:"user"`
+		Pwd            string        `yaml:"pwd"`
+		Port           string        `yaml:"port"`
+		Host           string        `yaml:"host"`
+		Queues         []QueueConfig `yaml:"queues"`
+		ConsumersCount int           `yaml:"consumersCount"`
 	} `yaml:"rabbit"`
 }
 

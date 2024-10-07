@@ -2,15 +2,16 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
+	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/rabbit"
+	"notice-me-server/pkg/websocket"
+
 	"github.com/en-vee/alog"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"gorm.io/gorm"
-	"net/http"
-	"notice-me-server/pkg/config"
-	"notice-me-server/pkg/rabbit"
-	"notice-me-server/pkg/websocket"
 )
 
 type server struct {
@@ -57,10 +58,10 @@ func (s *server) Run() error {
 		websocket.Run()
 	}(s.ws)
 
-	go func(amqp *amqp.Connection, queues []config.QueueConfig, consumers map[string]func([]byte)) {
-		r := rabbit.NewRabbit(amqp, queues)
+	go func(amqp *amqp.Connection, consumersCount int, queues []config.QueueConfig, consumers map[string]func([]byte)) {
+		r := rabbit.NewRabbit(amqp, consumersCount, queues)
 		r.RunConsumers(consumers)
-	}(s.amqp, s.c.Rabbit.Queues, s.consumersMap())
+	}(s.amqp, s.c.Rabbit.ConsumersCount, s.c.Rabbit.Queues, s.consumersMap())
 
 	headersOk := handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin"})
 	originsOk := handlers.AllowedOrigins(s.c.Server.Cors)

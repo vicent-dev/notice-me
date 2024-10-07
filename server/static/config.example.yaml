@@ -16,7 +16,7 @@ rabbit:
   pwd: guest
   port: 5672
   host: rabbit
-  enabled: true
+  consumersCount: 1
   queues:
     -
       name: notification.notify
