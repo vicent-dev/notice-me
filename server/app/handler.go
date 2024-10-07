@@ -8,9 +8,19 @@ import (
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
+	"notice-me-server/static"
 
 	"github.com/gorilla/mux"
 )
+
+func (s *server) docsHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		docsFile := static.GetDocsFile()
+
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(docsFile)
+	}
+}
 
 func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
 	repo := repository.GetRepository[notification.Notification](s.db)

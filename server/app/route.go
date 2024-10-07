@@ -12,6 +12,7 @@ func (s *server) routes() {
 	apiRouter.Use(jsonMiddleware)
 
 	// notifications CRUD
+	apiRouter.HandleFunc("/docs", s.docsHandler()).Methods("GET")
 	apiRouter.HandleFunc("/notifications", s.createNotificationHandler()).Methods("POST")
 	apiRouter.HandleFunc("/notifications", s.getNotificationsHandler()).Methods("GET")
 	apiRouter.HandleFunc("/notifications/{id}", s.deleteNotificationHandler()).Methods("DELETE")
