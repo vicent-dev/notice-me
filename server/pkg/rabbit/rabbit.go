@@ -48,17 +48,19 @@ func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 	wg.Add(len(r.QueuesConfig) * r.consumersCount)
 
 	for _, queue := range r.QueuesConfig {
+		consumerKey := queue.Name + "_consumer_group_key"
 		for cc := range r.consumersCount {
 			alog.Info("Consumer [" + strconv.Itoa(cc) + "] consuming from queue " + queue.Name)
-			go r.Consume(queue, callbacks)
+			go r.Consume(queue, callbacks, consumerKey)
 		}
 	}
 
 	wg.Wait()
 }
 
-func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(body []byte)) {
+func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(body []byte), consumerKey string) {
 	ch, _ := r.conn.Channel()
+	defer ch.Close()
 
 	q, _ := ch.QueueDeclare(
 		queue.Name,
@@ -71,7 +73,7 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 
 	msgs, _ := ch.Consume(
 		q.Name,
-		"",
+		consumerKey,
 		true,
 		queue.Exclusive,
 		false,
@@ -99,6 +101,8 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
 	ch, _ := r.conn.Channel()
 
+	defer ch.Close()
+
 	q, _ := ch.QueueDeclare(
 		queue.Name,
 		queue.Durable,
@@ -112,7 +116,7 @@ func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
 	defer cancel()
 
 	return ch.PublishWithContext(ctx,
-		"",
+		queue.Exchange,
 		q.Name,
 		false,
 		false,
