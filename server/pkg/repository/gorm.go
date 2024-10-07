@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"math"
 	"reflect"
 
 	"gorm.io/gorm"
@@ -38,6 +39,32 @@ func (r Gorm[T]) Find(id uint) (*T, error) {
 	}
 
 	return &t, nil
+}
+
+func (r Gorm[T]) FindPaginated(pageSize, page int) (*Pagination, error) {
+	p := &Pagination{
+		Limit: pageSize,
+		Page:  page,
+	}
+
+	var totalRows int64
+
+	var t T
+
+	r.db.Model(t).Count(&totalRows)
+
+	p.TotalRows = totalRows
+	totalPages := int(math.Ceil(float64(totalRows) / float64(p.Limit)))
+	p.TotalPages = totalPages
+
+	var ts []*T
+	r.db.Scopes(func(db *gorm.DB) *gorm.DB {
+		return db.Offset(p.GetOffset()).Limit(p.GetLimit()).Order(p.GetSort())
+	}).Find(&ts)
+
+	p.Rows = ts
+
+	return p, nil
 }
 
 func (r Gorm[T]) FindWithRelations(id int) (*T, error) {

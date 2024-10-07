@@ -46,9 +46,9 @@ func PublishCreateNotification(
 
 func GetNotifications(
 	repo repository.Repository[Notification],
-) ([]*Notification, error) {
-
-	return repo.FindBy()
+	pageSize, page int,
+) (*repository.Pagination, error) {
+	return repo.FindPaginated(pageSize, page)
 }
 
 func DeleteNotification(

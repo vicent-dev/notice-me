@@ -10,6 +10,7 @@ import (
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
 	"notice-me-server/static"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -53,8 +54,30 @@ func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.R
 	repo := repository.GetRepository[notification.Notification](s.db)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// @todo add pagination
-		ns, err := notification.GetNotifications(repo)
+		pageSize := mux.Vars(r)["pageSize"]
+
+		if pageSize == "" {
+			pageSize = repository.DefaultPageSize
+		}
+
+		pageSizeInt, err := strconv.Atoi(pageSize)
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		page := mux.Vars(r)["page"]
+		if page == "" {
+			page = repository.DefaultPage
+		}
+
+		pageInt, err := strconv.Atoi(page)
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		ns, err := notification.GetNotifications(repo, pageSizeInt, pageInt)
 		if err != nil {
 			s.writeErrorResponse(w, err, http.StatusBadRequest)
 			return
