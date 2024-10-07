@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -54,7 +55,7 @@ func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.R
 	repo := repository.GetRepository[notification.Notification](s.db)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		pageSize := mux.Vars(r)["pageSize"]
+		pageSize := r.URL.Query().Get("pageSize")
 
 		if pageSize == "" {
 			pageSize = repository.DefaultPageSize
@@ -66,7 +67,7 @@ func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		page := mux.Vars(r)["page"]
+		page := r.URL.Query().Get("page")
 		if page == "" {
 			page = repository.DefaultPage
 		}
@@ -76,6 +77,8 @@ func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.R
 			s.writeErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		fmt.Printf("page: %d, pageSize: %d\n", page, pageSize)
 
 		ns, err := notification.GetNotifications(repo, pageSizeInt, pageInt)
 		if err != nil {

@@ -1,18 +1,19 @@
 import {useEffect, useState} from "react";
-import {DataGrid, GridColDef} from '@mui/x-data-grid';
+import {DataGrid} from '@mui/x-data-grid';
 import {api} from "../util/api";
 import {Button} from "@mui/material";
 import toast from "react-hot-toast";
-import {Box, CircularProgress} from "@mui/joy";
+import {CircularProgress} from "@mui/joy";
 
 export default function NotificationsList({refreshNotifications, setRefreshNotifications}) {
   const [notifications, setNotifications] = useState(null);
 
   function fetchNotifications() {
-    api().get('/notifications')
+    //@todo change to have backend pagination and not only last 50
+    api().get('/notifications?page=1&pageSize=50')
       .then((result) => {
         if (result && result.data) {
-          setNotifications(result.data);
+          setNotifications(result.data.rows);
         } else {
           setNotifications([]);
         }
@@ -102,16 +103,10 @@ export default function NotificationsList({refreshNotifications, setRefreshNotif
               rows={notifications}
               columns={columns}
               initialState={{
-                pagination: {
-                  paginationModel: {
-                    pageSize: 100,
-                  },
-                },
                 sorting: {
                   sortModel: [{ field: 'CreatedAt', sort: 'desc' }],
                 },
               }}
-              pageSizeOptions={[5]}
               checkboxSelection
               disableRowSelectionOnClick
               getRowId={(row: any) => row.ID}
