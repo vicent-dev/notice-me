@@ -62,6 +62,20 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 	ch, _ := r.conn.Channel()
 	defer ch.Close()
 
+	err := ch.ExchangeDeclare(
+		queue.Exchange,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		alog.Error("Error declaring exchange consumer: " + err.Error())
+	}
+
 	q, _ := ch.QueueDeclare(
 		queue.Name,
 		queue.Durable,
@@ -102,6 +116,20 @@ func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
 	ch, _ := r.conn.Channel()
 
 	defer ch.Close()
+
+	err := ch.ExchangeDeclare(
+		queue.Exchange,
+		"direct",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		return err
+	}
 
 	q, _ := ch.QueueDeclare(
 		queue.Name,
