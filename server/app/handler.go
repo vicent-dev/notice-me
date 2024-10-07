@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"notice-me-server/pkg/notification"
+	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
 	"notice-me-server/static"
@@ -23,7 +24,7 @@ func (s *server) docsHandler() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
-	repo := repository.GetRepository[notification.Notification](s.db)
+	rbbt := rabbit.NewRabbit(s.amqp, s.c.Rabbit.ConsumersCount, s.c.Rabbit.Queues)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
@@ -33,12 +34,12 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 		}
 
 		notificationPostDto := &notification.NotificationPostDto{}
-		if err != json.Unmarshal(body, notificationPostDto) {
+		if err = json.Unmarshal(body, notificationPostDto); err != nil {
 			s.writeErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
 
-		n, err := notification.CreateNotification(notificationPostDto, repo)
+		n, err := notification.PublishCreateNotification(notificationPostDto, rbbt)
 
 		if err != nil {
 			s.writeErrorResponse(w, err, http.StatusInternalServerError)

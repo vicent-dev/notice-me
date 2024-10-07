@@ -5,9 +5,16 @@ import (
 	"notice-me-server/pkg/repository"
 )
 
-func (s *server) consumeNotificationHandler() func([]byte) {
+func (s *server) consumeNotificationNotifyHandler() func([]byte) {
 	repo := repository.GetRepository[notification.Notification](s.db)
 	return func(body []byte) {
-		notification.ConsumeNotification(repo, s.ws, body)
+		notification.NotifyNotification(repo, s.ws, body)
+	}
+}
+
+func (s *server) consumeNotificationCreateHandler() func([]byte) {
+	repo := repository.GetRepository[notification.Notification](s.db)
+	return func(body []byte) {
+		notification.CreateNotification(repo, body)
 	}
 }

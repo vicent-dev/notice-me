@@ -22,7 +22,8 @@ func (s *server) connectAmqp() {
 
 func (s *server) consumersMap() map[string]func([]byte) {
 	consumers := make(map[string]func([]byte))
-	consumers["notification.notify"] = s.consumeNotificationHandler()
+	consumers["notification.notify"] = s.consumeNotificationNotifyHandler()
+	consumers["notification.create"] = s.consumeNotificationCreateHandler()
 
 	return consumers
 }

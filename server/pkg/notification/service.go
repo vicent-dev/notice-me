@@ -3,15 +3,17 @@ package notification
 import (
 	"encoding/json"
 	"github.com/en-vee/alog"
+	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
 	"strconv"
 	"time"
 )
 
-func CreateNotification(
+func PublishCreateNotification(
 	notificationPostDto *NotificationPostDto,
-	repo repository.Repository[Notification],
+	rabbit *rabbit.Rabbit,
 ) (*Notification, error) {
 	n := &Notification{
 		Body:          notificationPostDto.Body,
@@ -19,7 +21,25 @@ func CreateNotification(
 		ClientGroupId: notificationPostDto.ClientGroupId,
 	}
 
-	repo.Create(n)
+	var queueConfigCreate config.QueueConfig
+
+	for _, qc := range rabbit.QueuesConfig {
+		if qc.Name == "notification.create" {
+			queueConfigCreate = qc
+		}
+	}
+
+	nBody, err := json.Marshal(n)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = rabbit.Produce(queueConfigCreate, nBody)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return n, nil
 }
@@ -56,11 +76,32 @@ func DeleteNotification(
 	return nil
 }
 
-func ConsumeNotification(repo repository.Repository[Notification], ws *websocket.Hub, body []byte) {
+func CreateNotification(repo repository.Repository[Notification], body []byte) {
+	n := &Notification{}
+
+	err := json.Unmarshal(body, n)
+	if err != nil {
+		alog.Error("Cannot unmarshal notification.create: " + err.Error())
+		return
+	}
+
+	err = repo.Create(n)
+	if err != nil {
+		alog.Error("Cannot create notification: " + err.Error())
+		return
+	}
+}
+
+func NotifyNotification(repo repository.Repository[Notification], ws *websocket.Hub, body []byte) {
 	//update notification
 	queueNotification := &Notification{}
 
-	json.Unmarshal(body, queueNotification)
+	err := json.Unmarshal(body, queueNotification)
+
+	if err != nil {
+		alog.Error("Cannot unmarshal notification.notify: " + err.Error())
+		return
+	}
 
 	n, err := repo.Find(queueNotification.ID)
 
@@ -69,7 +110,11 @@ func ConsumeNotification(repo repository.Repository[Notification], ws *websocket
 		return
 	}
 
-	repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
+	err = repo.Update(n, repository.Field{Column: "NotifiedAt", Value: time.Now()})
+	if err != nil {
+		alog.Error("Cannot update notification: " + err.Error())
+		return
+	}
 
 	// broadcast to all clients
 	if n.ClientId == websocket.AllClientId || n.ClientGroupId == websocket.AllClientGroupId {
