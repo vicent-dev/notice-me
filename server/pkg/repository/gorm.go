@@ -29,10 +29,10 @@ func GetRepository[T Entity](db *gorm.DB) Repository[T] {
 	return rs[name].(Repository[T])
 }
 
-func (r Gorm[T]) Find(id uint) (*T, error) {
+func (r Gorm[T]) Find(id string) (*T, error) {
 	var t T
 
-	result := r.db.Where(id).First(&t)
+	result := r.db.First(&t, "id = ?", id)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, result.Error
@@ -45,6 +45,7 @@ func (r Gorm[T]) FindPaginated(pageSize, page int) (*Pagination, error) {
 	p := &Pagination{
 		Limit: pageSize,
 		Page:  page,
+		Sort:  "created_at desc",
 	}
 
 	var totalRows int64
@@ -67,10 +68,10 @@ func (r Gorm[T]) FindPaginated(pageSize, page int) (*Pagination, error) {
 	return p, nil
 }
 
-func (r Gorm[T]) FindWithRelations(id int) (*T, error) {
+func (r Gorm[T]) FindWithRelations(id string) (*T, error) {
 	var t T
 
-	result := r.db.Preload(clause.Associations).Where(id).First(&t)
+	result := r.db.Preload(clause.Associations).First(&t, "id = ?", id)
 
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, result.Error

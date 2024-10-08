@@ -12,8 +12,8 @@ var (
 )
 
 type Repository[T Entity] interface {
-	Find(id uint) (*T, error)
-	FindWithRelations(id int) (*T, error)
+	Find(id string) (*T, error)
+	FindWithRelations(id string) (*T, error)
 	FindBy(fs ...Field) ([]*T, error)
 	FindPaginated(pageSize, page int) (*Pagination, error)
 	FindByWithRelations(fs ...Field) ([]*T, error)

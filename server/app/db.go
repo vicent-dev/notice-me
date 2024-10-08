@@ -21,5 +21,7 @@ func (s *server) connectDb() {
 
 	s.db = conn
 
+	s.db.Migrator().DropTable(&notification.Notification{}) //@todo remove this. Reset ID type
+
 	s.db.AutoMigrate(&notification.Notification{})
 }

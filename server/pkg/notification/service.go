@@ -7,7 +7,6 @@ import (
 	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
-	"strconv"
 	"time"
 )
 
@@ -15,11 +14,11 @@ func PublishCreateNotification(
 	notificationPostDto *NotificationPostDto,
 	rabbit *rabbit.Rabbit,
 ) (*Notification, error) {
-	n := &Notification{
-		Body:          notificationPostDto.Body,
-		ClientId:      notificationPostDto.ClientId,
-		ClientGroupId: notificationPostDto.ClientGroupId,
-	}
+	n := NewNotification(
+		notificationPostDto.Body,
+		notificationPostDto.ClientId,
+		notificationPostDto.ClientGroupId,
+	)
 
 	var queueConfigCreate config.QueueConfig
 
@@ -55,13 +54,8 @@ func DeleteNotification(
 	id string,
 	repo repository.Repository[Notification],
 ) error {
-	idInt, err := strconv.Atoi(id)
 
-	if err != nil {
-		return err
-	}
-
-	n, err := repo.Find(uint(idInt))
+	n, err := repo.Find(id)
 
 	if err != nil {
 		return err
@@ -103,7 +97,7 @@ func NotifyNotification(repo repository.Repository[Notification], ws *websocket.
 		return
 	}
 
-	n, err := repo.Find(queueNotification.ID)
+	n, err := repo.Find(queueNotification.ID.String())
 
 	if err != nil {
 		alog.Error("Error consuming message " + string(body))

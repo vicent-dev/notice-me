@@ -1,16 +1,27 @@
 package notification
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
 )
 
 type Notification struct {
 	gorm.Model
+	ID            uuid.UUID  `gorm:"type:uuid"`
 	Body          string     `gorm:"body" json:"Body"`
 	NotifiedAt    *time.Time `gorm:"notified_at" json:"NotifiedAt"`
 	ClientId      string     `gorm:"client_id" json:"ClientId"`
 	ClientGroupId string     `gorm:"client_group_id" json:"ClientGroupId"`
+}
+
+func NewNotification(body, clientId, clientGroupId string) *Notification {
+	return &Notification{
+		ID:            uuid.New(),
+		Body:          body,
+		ClientId:      clientId,
+		ClientGroupId: clientGroupId,
+	}
 }
 
 type NotificationPostDto struct {
