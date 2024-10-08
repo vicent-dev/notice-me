@@ -4,6 +4,5 @@ run:
 build:
 	go build ./cmd/server/main.go
 
-watch:
-	ulimit -n 1000 #increase the file watch limit, might required on MacOS
-	reflex -s -r '\.go$$' make run
+build-restart:
+	go build ./cmd/server/main.go && systemctl restart notice-me
