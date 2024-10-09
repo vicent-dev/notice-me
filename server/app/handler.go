@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -37,6 +38,11 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 		notificationPostDto := &notification.NotificationPostDto{}
 		if err = json.Unmarshal(body, notificationPostDto); err != nil {
 			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if notificationPostDto.Body == "" || notificationPostDto.ClientId == "" || notificationPostDto.ClientGroupId == "" {
+			s.writeErrorResponse(w, errors.New("body, clientId and clientGroupId are required fields"), http.StatusBadRequest)
 			return
 		}
 

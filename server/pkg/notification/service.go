@@ -14,6 +14,7 @@ func PublishCreateNotification(
 	notificationPostDto *NotificationPostDto,
 	rabbit *rabbit.Rabbit,
 ) (*Notification, error) {
+
 	n := NewNotification(
 		notificationPostDto.Body,
 		notificationPostDto.ClientId,
