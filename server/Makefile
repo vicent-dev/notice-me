@@ -1,6 +1,9 @@
 run:
 	go run ./cmd/server/main.go
 
+test:
+	go test -v ./...
+
 build:
 	go build ./cmd/server/main.go
 

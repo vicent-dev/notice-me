@@ -11,43 +11,36 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+type RabbitInterface interface {
+	RunConsumers(callbacks map[string]func(body []byte))
+	Consume(queue config.QueueConfig, callbacks map[string]func(body []byte), consumerKey string)
+	Produce(queue config.QueueConfig, msg []byte) error
+	GetQueuesConfig() []config.QueueConfig
+}
+
 type Rabbit struct {
 	conn           *amqp.Connection
 	consumersCount int
-	QueuesConfig   []config.QueueConfig
+	queuesConfig   []config.QueueConfig
 }
 
-func NewRabbit(conn *amqp.Connection, consumersCount int, queuesConfig []config.QueueConfig) *Rabbit {
+func NewRabbit(conn *amqp.Connection, consumersCount int, queuesConfig []config.QueueConfig) RabbitInterface {
 	return &Rabbit{
 		conn:           conn,
 		consumersCount: consumersCount,
-		QueuesConfig:   queuesConfig,
+		queuesConfig:   queuesConfig,
 	}
 }
 
-func (r *Rabbit) declareQueues() {
-	ch, _ := r.conn.Channel()
-
-	defer ch.Close()
-
-	for _, queue := range r.QueuesConfig {
-
-		_, _ = ch.QueueDeclare(
-			queue.Name,
-			queue.Durable,
-			queue.AutoDelete,
-			queue.Exclusive,
-			queue.NoWait,
-			nil,
-		)
-	}
+func (r *Rabbit) GetQueuesConfig() []config.QueueConfig {
+	return r.queuesConfig
 }
 
 func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 	wg := sync.WaitGroup{}
-	wg.Add(len(r.QueuesConfig) * r.consumersCount)
+	wg.Add(len(r.GetQueuesConfig()) * r.consumersCount)
 
-	for _, queue := range r.QueuesConfig {
+	for _, queue := range r.queuesConfig {
 		consumerKey := queue.Name + "_consumer_group_key"
 		for cc := range r.consumersCount {
 			alog.Info("Consumer [" + strconv.Itoa(cc) + "] consuming from queue " + queue.Name)
