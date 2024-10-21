@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const RepositoryKey = "notification"
+
 type Notification struct {
 	gorm.Model
 	ID            uuid.UUID  `gorm:"type:uuid"`

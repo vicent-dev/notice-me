@@ -3,7 +3,6 @@ package repository
 import (
 	"errors"
 	"math"
-	"reflect"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -13,20 +12,8 @@ type Gorm[T Entity] struct {
 	db *gorm.DB
 }
 
-func GetRepository[T Entity](db *gorm.DB) Repository[T] {
-	name := reflect.TypeOf((*T)(nil)).Elem().Name()
-
-	if rs == nil {
-		rs = make(map[string]interface{})
-	}
-
-	if r, ok := rs[name]; ok {
-		return r.(Repository[T])
-	}
-
-	rs[name] = Gorm[T]{db}
-
-	return rs[name].(Repository[T])
+func NewGorm[T Entity](db *gorm.DB) Repository[T] {
+	return Gorm[T]{db}
 }
 
 func (r Gorm[T]) Find(id string) (*T, error) {

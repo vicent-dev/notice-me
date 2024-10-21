@@ -16,6 +16,7 @@ type RabbitInterface interface {
 	Consume(queue config.QueueConfig, callbacks map[string]func(body []byte), consumerKey string)
 	Produce(queue config.QueueConfig, msg []byte) error
 	GetQueuesConfig() []config.QueueConfig
+	Close() error
 }
 
 type Rabbit struct {
@@ -34,6 +35,10 @@ func NewRabbit(conn *amqp.Connection, consumersCount int, queuesConfig []config.
 
 func (r *Rabbit) GetQueuesConfig() []config.QueueConfig {
 	return r.queuesConfig
+}
+
+func (r *Rabbit) Close() error {
+	return r.conn.Close()
 }
 
 func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
