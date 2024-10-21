@@ -2,6 +2,8 @@ package app
 
 import (
 	"bytes"
+	"github.com/gorilla/mux"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"notice-me-server/pkg/notification"
@@ -72,12 +74,83 @@ func TestCreateNotificationHandlerFail(t *testing.T) {
 	}
 }
 
+func TestGetNotificationsHandlerSuccess(t *testing.T) {
+	initialiseMocks()
+
+	req, err := http.NewRequest(http.MethodGet, "/notifications?pageSize=5&page=1", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(s.getNotificationsHandler())
+
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Fail get notifications handler status: %v", status)
+	}
+}
+
+func TestDeleteNotificationsHandlerSuccess(t *testing.T) {
+	initialiseMocks()
+
+	req, err := http.NewRequest(http.MethodDelete, "/notifications", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req = mux.SetURLVars(req, map[string]string{"id": "1"})
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(s.deleteNotificationHandler())
+
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Fail get notifications handler status: %v", status)
+		b, _ := io.ReadAll(rr.Body)
+		t.Errorf("body: %v", string(b))
+	}
+}
+
+func TestDeleteNotificationsHandlerFail(t *testing.T) {
+	initialiseMocks()
+
+	req, err := http.NewRequest(http.MethodDelete, "/notifications", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(s.deleteNotificationHandler())
+
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status == http.StatusOK {
+		t.Errorf("Fail get notifications fail handler status: %v", status)
+		b, _ := io.ReadAll(rr.Body)
+		t.Errorf("body: %v", string(b))
+	}
+}
+
 func initialiseMocks() {
 	// reset every test the status of the mocks
 	rbb := mock.NewRabbitMock()
 
 	repositories := make(map[string]interface{})
-	repositories[notification.RepositoryKey] = repo_mock.NewRepository[notification.Notification]()
+	notificationsRepo := repo_mock.NewRepository[notification.Notification]()
+
+	notificationsRepo.CreateBulk([]notification.Notification{
+		{},
+		{},
+		{},
+	})
+
+	repositories[notification.RepositoryKey] = notificationsRepo
 
 	s = &server{
 		repositories: repositories,

@@ -38,7 +38,9 @@ db:
   port: 3306
   host: mariadb
   name: notice_me_server
-rabbit:
+rabbit    keys[i] = k
+    i++
+}:
   user: guest # change user, password, port and host
   pwd: guest
   port: 5672

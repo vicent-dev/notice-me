@@ -2,7 +2,7 @@ run:
 	go run ./cmd/server/main.go
 
 test:
-	go test -v ./...
+	go test -v ./... -cover
 
 build:
 	go build ./cmd/server/main.go
