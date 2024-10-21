@@ -146,15 +146,15 @@ func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		client := &websocket.Client{
-			ID:               id,
-			GroupId:          group,
-			WebsocketService: ws,
-			Conn:             conn,
-			Send:             make(chan []byte, 256),
-		}
+		client := websocket.NewClient(
+			id,
+			group,
+			ws,
+			conn,
+			make(chan []byte, 256),
+		)
 
-		client.WebsocketService.Register <- client
+		client.WebsocketService.RegisterClient(client)
 
 		go client.Write()
 		go client.Read()

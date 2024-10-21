@@ -16,7 +16,7 @@ import (
 
 type server struct {
 	r    *mux.Router
-	ws   *websocket.Hub
+	ws   websocket.HubInterface
 	amqp *amqp.Connection
 	db   *gorm.DB
 	c    *config.Config
@@ -54,7 +54,7 @@ func (s *server) Run() error {
 		}
 	}()
 
-	go func(websocket *websocket.Hub) {
+	go func(websocket websocket.HubInterface) {
 		websocket.Run()
 	}(s.ws)
 

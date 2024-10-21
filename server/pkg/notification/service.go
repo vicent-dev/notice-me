@@ -90,7 +90,7 @@ func CreateNotification(repo repository.Repository[Notification], body []byte) e
 	return nil
 }
 
-func NotifyNotification(repo repository.Repository[Notification], ws *websocket.Hub, body []byte) {
+func NotifyNotification(repo repository.Repository[Notification], ws websocket.HubInterface, body []byte) {
 	//update notification
 	queueNotification := &Notification{}
 
@@ -114,15 +114,5 @@ func NotifyNotification(repo repository.Repository[Notification], ws *websocket.
 		return
 	}
 
-	// broadcast to all clients
-	if n.ClientId == websocket.AllClientId || n.ClientGroupId == websocket.AllClientGroupId {
-		ws.Broadcast <- []byte(n.FormatHTML())
-		return
-	}
-
-	clients := ws.GetClientsToNotify(n.ClientId, n.ClientGroupId)
-
-	for _, client := range clients {
-		client.Send <- []byte(n.FormatHTML())
-	}
+	ws.Notify(n.ClientId, n.ClientGroupId, []byte(n.FormatHTML()))
 }

@@ -32,7 +32,6 @@ func TestPublishCreateNotification(t *testing.T) {
 	}
 }
 
-
 func TestDeleteNotification(t *testing.T) {
 	repo := repo_mock.NewRepository[Notification]()
 
