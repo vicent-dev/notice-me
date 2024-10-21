@@ -10,16 +10,16 @@ import (
 	"github.com/en-vee/alog"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"gorm.io/gorm"
 )
 
 type server struct {
-	r    *mux.Router
-	ws   *websocket.Hub
-	amqp *amqp.Connection
-	db   *gorm.DB
-	c    *config.Config
+	r            *mux.Router
+	ws           websocket.HubInterface
+	rabbit       rabbit.RabbitInterface
+	repositories map[string]interface{}
+	db           *gorm.DB
+	c            *config.Config
 }
 
 func NewServer() *server {
@@ -29,8 +29,8 @@ func NewServer() *server {
 		r:  mux.NewRouter(),
 	}
 
-	s.connectDb()
-	s.connectAmqp()
+	s.initialiseRepositories()
+	s.initialiseRabbit()
 
 	s.routes()
 
@@ -40,7 +40,7 @@ func NewServer() *server {
 func (s *server) Run() error {
 
 	defer func() {
-		err := s.amqp.Close()
+		err := s.rabbit.Close()
 		if err != nil {
 			alog.Error("Error closing amqp connection: " + err.Error())
 		}
@@ -54,14 +54,13 @@ func (s *server) Run() error {
 		}
 	}()
 
-	go func(websocket *websocket.Hub) {
+	go func(websocket websocket.HubInterface) {
 		websocket.Run()
 	}(s.ws)
 
-	go func(amqp *amqp.Connection, consumersCount int, queues []config.QueueConfig, consumers map[string]func([]byte)) {
-		r := rabbit.NewRabbit(amqp, consumersCount, queues)
+	go func(r rabbit.RabbitInterface, consumers map[string]func([]byte)) {
 		r.RunConsumers(consumers)
-	}(s.amqp, s.c.Rabbit.ConsumersCount, s.c.Rabbit.Queues, s.consumersMap())
+	}(s.rabbit, s.consumersMap())
 
 	headersOk := handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin"})
 	originsOk := handlers.AllowedOrigins(s.c.Server.Cors)

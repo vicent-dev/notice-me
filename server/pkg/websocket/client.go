@@ -1,9 +1,10 @@
 package websocket
 
 import (
+	"time"
+
 	"github.com/en-vee/alog"
 	"github.com/gorilla/websocket"
-	"time"
 )
 
 // Client is a middleman between the websocket connection and the WebsocketService.
@@ -12,13 +13,13 @@ type Client struct {
 
 	GroupId string
 
-	WebsocketService *Hub
+	WebsocketService HubInterface
 
 	// The websocket connection.
 	Conn *websocket.Conn
 
 	// Buffered channel of outbound messages.
-	Send chan []byte
+	send chan []byte
 }
 
 const (
@@ -43,9 +44,19 @@ var (
 	space   = []byte{' '}
 )
 
+func NewClient(id, groupId string, ws HubInterface, conn *websocket.Conn, send chan []byte) *Client {
+	return &Client{
+		ID:               id,
+		GroupId:          groupId,
+		WebsocketService: ws,
+		Conn:             conn,
+		send:             send,
+	}
+}
+
 func (c *Client) Read() {
 	defer func() {
-		c.WebsocketService.unregister <- c
+		c.WebsocketService.UnregisterClient(c)
 		c.Conn.Close()
 		alog.Info("client disconnected " + c.ID)
 	}()
@@ -71,7 +82,7 @@ func (c *Client) Write() {
 	}()
 	for {
 		select {
-		case message, ok := <-c.Send:
+		case message, ok := <-c.send:
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The WebsocketService closed the channel.
@@ -86,10 +97,10 @@ func (c *Client) Write() {
 			w.Write(message)
 
 			// Add queued chat messages to the current websocket message.
-			n := len(c.Send)
+			n := len(c.send)
 			for i := 0; i < n; i++ {
 				w.Write(newline)
-				w.Write(<-c.Send)
+				w.Write(<-c.send)
 			}
 
 			if err := w.Close(); err != nil {
@@ -102,4 +113,8 @@ func (c *Client) Write() {
 			}
 		}
 	}
+}
+
+func (c *Client) Send(message []byte) {
+	c.send <- message
 }

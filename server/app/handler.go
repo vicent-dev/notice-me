@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"notice-me-server/pkg/notification"
-	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/repository"
 	"notice-me-server/pkg/websocket"
 	"notice-me-server/static"
@@ -26,7 +25,6 @@ func (s *server) docsHandler() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
-	rbbt := rabbit.NewRabbit(s.amqp, s.c.Rabbit.ConsumersCount, s.c.Rabbit.Queues)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
@@ -46,7 +44,7 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 			return
 		}
 
-		n, err := notification.PublishCreateNotification(notificationPostDto, rbbt)
+		n, err := notification.PublishCreateNotification(notificationPostDto, s.rabbit)
 
 		if err != nil {
 			s.writeErrorResponse(w, err, http.StatusInternalServerError)
@@ -57,7 +55,7 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 }
 
 func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.Request) {
-	repo := repository.GetRepository[notification.Notification](s.db)
+	repo := s.getRepository(notification.RepositoryKey).(repository.Repository[notification.Notification])
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		pageSize := r.URL.Query().Get("pageSize")
@@ -94,7 +92,7 @@ func (s *server) getNotificationsHandler() func(w http.ResponseWriter, r *http.R
 }
 
 func (s *server) deleteNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
-	repo := repository.GetRepository[notification.Notification](s.db)
+	repo := s.getRepository(notification.RepositoryKey).(repository.Repository[notification.Notification])
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
@@ -146,15 +144,15 @@ func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		client := &websocket.Client{
-			ID:               id,
-			GroupId:          group,
-			WebsocketService: ws,
-			Conn:             conn,
-			Send:             make(chan []byte, 256),
-		}
+		client := websocket.NewClient(
+			id,
+			group,
+			ws,
+			conn,
+			make(chan []byte, 256),
+		)
 
-		client.WebsocketService.Register <- client
+		client.WebsocketService.RegisterClient(client)
 
 		go client.Write()
 		go client.Read()

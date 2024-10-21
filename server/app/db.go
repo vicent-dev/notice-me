@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"notice-me-server/pkg/notification"
+	"notice-me-server/pkg/repository"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -22,4 +23,22 @@ func (s *server) connectDb() {
 	s.db = conn
 
 	s.db.AutoMigrate(&notification.Notification{})
+}
+
+func (s *server) initialiseRepositories() {
+	if s.db == nil {
+		s.connectDb()
+	}
+
+	s.repositories = make(map[string]interface{})
+
+	s.repositories[notification.RepositoryKey] = repository.NewGorm[notification.Notification](s.db)
+}
+
+func (s *server) getRepository(name string) interface{} {
+	if r, ok := s.repositories[name]; ok {
+		return r
+	}
+
+	return nil
 }

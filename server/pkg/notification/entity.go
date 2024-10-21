@@ -1,10 +1,13 @@
 package notification
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
+
+const RepositoryKey = "notification"
 
 type Notification struct {
 	gorm.Model

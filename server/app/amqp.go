@@ -2,10 +2,12 @@ package app
 
 import (
 	"fmt"
+	"notice-me-server/pkg/rabbit"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func (s *server) connectAmqp() {
+func (s *server) initialiseRabbit() {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/",
 		s.c.Rabbit.User,
 		s.c.Rabbit.Pwd,
@@ -17,7 +19,7 @@ func (s *server) connectAmqp() {
 		panic(err)
 	}
 
-	s.amqp = conn
+	s.rabbit = rabbit.NewRabbit(conn, s.c.Rabbit.ConsumersCount, s.c.Rabbit.Queues)
 }
 
 func (s *server) consumersMap() map[string]func([]byte) {
