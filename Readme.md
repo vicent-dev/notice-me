@@ -1,6 +1,6 @@
 # Notice-Me
 
-demo site: https://noticeme.vicentdev.com
+demo site: https://demo.notice-me.es
 
 Notice-Me is a microservice that allows you to implement 
 frontend async notifications from your backend system/s via websockets.
