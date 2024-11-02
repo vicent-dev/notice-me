@@ -1,1 +1,4 @@
 .idea
+.env
+static/config.yaml
+main
