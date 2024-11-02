@@ -3,12 +3,16 @@ package app
 import (
 	"bytes"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/hub"
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/rabbit/mock"
 	repo_mock "notice-me-server/pkg/repository/mock"
+	"strings"
 	"testing"
 )
 
@@ -137,6 +141,29 @@ func TestDeleteNotificationsHandlerFail(t *testing.T) {
 	}
 }
 
+func TestWSHandlerSuccess(t *testing.T) {
+	initialiseMocks()
+
+	server := httptest.NewServer(http.HandlerFunc(s.wsHandler()))
+	defer server.Close()
+
+	url := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
+
+	client, rr, err := websocket.DefaultDialer.Dial(url, nil)
+
+	if err != nil {
+		t.Fatalf("could not connect to WebSocket server: %v", err)
+	}
+
+	defer client.Close()
+
+	if status := rr.StatusCode; status != http.StatusSwitchingProtocols {
+		t.Errorf("Fail connect ws fail handler status: %v", status)
+		b, _ := io.ReadAll(rr.Body)
+		t.Errorf("body: %v", string(b))
+	}
+}
+
 func initialiseMocks() {
 	// reset every test the status of the mocks
 	rbb := mock.NewRabbitMock()
@@ -152,8 +179,13 @@ func initialiseMocks() {
 
 	repositories[notification.RepositoryKey] = notificationsRepo
 
+	c := &config.Config{}
+
+	c.Server.Cors = []string{"*"}
 	s = &server{
 		repositories: repositories,
 		rabbit:       rbb,
+		ws:           hub.NewHub(),
+		c:            c,
 	}
 }

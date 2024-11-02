@@ -3,9 +3,9 @@ package notification
 import (
 	"encoding/json"
 	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/hub"
 	"notice-me-server/pkg/rabbit"
 	"notice-me-server/pkg/repository"
-	"notice-me-server/pkg/websocket"
 	"time"
 
 	"github.com/en-vee/alog"
@@ -90,7 +90,7 @@ func CreateNotification(repo repository.Repository[Notification], body []byte) e
 	return nil
 }
 
-func NotifyNotification(repo repository.Repository[Notification], ws websocket.HubInterface, body []byte) {
+func NotifyNotification(repo repository.Repository[Notification], ws hub.HubInterface, body []byte) {
 	//update notification
 	queueNotification := &Notification{}
 

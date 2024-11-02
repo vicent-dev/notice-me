@@ -1,4 +1,4 @@
-package websocket
+package hub
 
 import (
 	"slices"
@@ -11,6 +11,7 @@ type HubInterface interface {
 	RegisterClient(c *Client)
 	UnregisterClient(c *Client)
 	Notify(clientId, clientGroupId string, body []byte)
+	Clients() []*Client
 }
 
 type Hub struct {
@@ -30,6 +31,16 @@ type Hub struct {
 var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+}
+
+func (ws *Hub) Clients() []*Client {
+	cs := make([]*Client, 0, len(ws.clients))
+
+	for client := range ws.clients {
+		cs = append(cs, client)
+	}
+
+	return cs
 }
 
 func NewHub() HubInterface {
@@ -75,7 +86,7 @@ func (ws *Hub) Notify(clientId, clientGroupId string, body []byte) {
 	clients := ws.getClientsToNotify(clientId, clientGroupId)
 
 	for _, client := range clients {
-		client.Send([]byte(body))
+		client.Send(body)
 	}
 }
 

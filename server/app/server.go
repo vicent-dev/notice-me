@@ -2,20 +2,19 @@ package app
 
 import (
 	"encoding/json"
-	"net/http"
-	"notice-me-server/pkg/config"
-	"notice-me-server/pkg/rabbit"
-	"notice-me-server/pkg/websocket"
-
 	"github.com/en-vee/alog"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
+	"net/http"
+	"notice-me-server/pkg/config"
+	"notice-me-server/pkg/hub"
+	"notice-me-server/pkg/rabbit"
 )
 
 type server struct {
 	r            *mux.Router
-	ws           websocket.HubInterface
+	ws           hub.HubInterface
 	rabbit       rabbit.RabbitInterface
 	repositories map[string]interface{}
 	db           *gorm.DB
@@ -25,7 +24,7 @@ type server struct {
 func NewServer() *server {
 	s := server{
 		c:  config.LoadConfig(),
-		ws: websocket.NewHub(),
+		ws: hub.NewHub(),
 		r:  mux.NewRouter(),
 	}
 
@@ -54,7 +53,7 @@ func (s *server) Run() error {
 		}
 	}()
 
-	go func(websocket websocket.HubInterface) {
+	go func(websocket hub.HubInterface) {
 		websocket.Run()
 	}(s.ws)
 

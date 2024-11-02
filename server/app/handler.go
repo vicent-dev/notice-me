@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
+	"notice-me-server/pkg/hub"
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/repository"
-	"notice-me-server/pkg/websocket"
 	"notice-me-server/static"
 	"strconv"
 
@@ -112,7 +111,7 @@ func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 	cors := s.c.Server.Cors
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		websocket.Upgrader.CheckOrigin = func(r *http.Request) bool {
+		hub.Upgrader.CheckOrigin = func(r *http.Request) bool {
 			for _, host := range cors {
 				if host == r.Host {
 					return true
@@ -130,21 +129,21 @@ func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 		group := r.URL.Query().Get("groupId")
 
 		if id == "" {
-			id = websocket.AllClientId
+			id = hub.AllClientId
 		}
 
 		if group == "" {
-			group = websocket.AllClientGroupId
+			group = hub.AllClientGroupId
 		}
 
-		conn, err := websocket.Upgrader.Upgrade(w, r, nil)
+		conn, err := hub.Upgrader.Upgrade(w, r, nil)
 
 		if err != nil {
-			log.Println(err)
+			s.writeErrorResponse(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		client := websocket.NewClient(
+		client := hub.NewClient(
 			id,
 			group,
 			ws,
