@@ -47,7 +47,7 @@ rabbit:
 ...
 ```
 
-This repository provides to you `docker-compose.yaml` in server folder to easily deploy the required services for Notice-Me but feel free 
+This repository provides to you `docker-compose.yaml` in root folder to easily deploy the required services for Notice-Me but feel free 
 to install those in the way you want. Furthermore, you will find a systemd config file `notice-me.service` to easily deploy Notice-Me in your VPS.
 
 ## Use cases
