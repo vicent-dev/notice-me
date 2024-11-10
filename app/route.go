@@ -14,6 +14,8 @@ func (s *server) routes() {
 	// notifications CRUD
 	apiRouter.HandleFunc("/docs", s.docsHandler()).Methods("GET")
 	apiRouter.HandleFunc("/notifications", s.createNotificationHandler()).Methods("POST")
+	apiRouter.HandleFunc("/notifications/notify/{id}", s.notifyNotificationHandler()).Methods("GET")
 	apiRouter.HandleFunc("/notifications", s.getNotificationsHandler()).Methods("GET")
+	apiRouter.HandleFunc("/notifications/{id}", s.getNotificationHandler()).Methods("GET")
 	apiRouter.HandleFunc("/notifications/{id}", s.deleteNotificationHandler()).Methods("DELETE")
 }

@@ -32,6 +32,42 @@ func TestPublishCreateNotification(t *testing.T) {
 	}
 }
 
+func TestPublishNotifyNotification(t *testing.T) {
+	rm := mock.NewRabbitMock()
+
+	err := PublishNotifyNotification(
+		"fake_id",
+		rm,
+	)
+
+	if err != nil {
+		t.Fatalf("Fail publish notify notification method: %s", err.Error())
+	}
+
+	if len(rm.(*mock.Rabbit).ProducedMessages) == 0 {
+		t.Fatalf("Fail publish notify notification method. Any message produced")
+	}
+}
+
+func TestGetNotification(t *testing.T) {
+	repo := repo_mock.NewRepository[Notification]()
+
+	repo.CreateBulk([]Notification{
+		{},
+		{},
+		{},
+	})
+
+	n, err := GetNotification(
+		"1",
+		repo,
+	)
+
+	if err != nil || n == nil {
+		t.Fatalf("Fail Get Notification method: %s", err.Error())
+	}
+}
+
 func TestDeleteNotification(t *testing.T) {
 	repo := repo_mock.NewRepository[Notification]()
 
@@ -93,8 +129,4 @@ func TestCreateNotification(t *testing.T) {
 	if nPersisted.ID.String() != fn.ID.String() {
 		t.Fatalf("Fail create notification. Notification not persisted. Wrong UUID")
 	}
-}
-
-func TestNotifyNotification(t *testing.T) {
-	//@todo prepare ws mock and test
 }

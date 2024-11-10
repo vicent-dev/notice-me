@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"notice-me-server/pkg/hub"
@@ -10,6 +11,7 @@ import (
 	"notice-me-server/pkg/repository"
 	"notice-me-server/static"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -100,6 +102,54 @@ func (s *server) deleteNotificationHandler() func(w http.ResponseWriter, r *http
 
 		if err != nil {
 			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		s.writeResponse(w, r)
+	}
+}
+
+func (s *server) getNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
+	repo := s.getRepository(notification.RepositoryKey).(repository.Repository[notification.Notification])
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
+
+		n, err := notification.GetNotification(id, repo)
+
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		s.writeResponse(w, n)
+	}
+}
+
+func (s *server) notifyNotificationHandler() func(w http.ResponseWriter, r *http.Request) {
+	repo := s.getRepository(notification.RepositoryKey).(repository.Repository[notification.Notification])
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := mux.Vars(r)["id"]
+
+		n, err := notification.GetNotification(id, repo)
+
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		if n.NotifiedAt != nil {
+			err = errors.New(fmt.Sprintf("Notification already notified at: %s", n.NotifiedAt.Format(time.DateTime)))
+			s.writeErrorResponse(w, err, http.StatusBadRequest)
+			return
+		}
+
+		err = notification.PublishNotifyNotification(n.ID.String(), s.rabbit)
+
+		if err != nil {
+			s.writeErrorResponse(w, err, http.StatusInternalServerError)
+			return
 		}
 
 		s.writeResponse(w, r)

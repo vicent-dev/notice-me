@@ -97,6 +97,29 @@ func TestGetNotificationsHandlerSuccess(t *testing.T) {
 	}
 }
 
+func TestGetNotificationHandlerSuccess(t *testing.T) {
+	initialiseMocks()
+
+	req, err := http.NewRequest(http.MethodGet, "/notifications", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req = mux.SetURLVars(req, map[string]string{"id": "1"})
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(s.getNotificationHandler())
+
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Fail get notification handler status: %v", status)
+		b, _ := io.ReadAll(rr.Body)
+		t.Errorf("body: %v", string(b))
+	}
+}
+
 func TestDeleteNotificationsHandlerSuccess(t *testing.T) {
 	initialiseMocks()
 
@@ -114,9 +137,36 @@ func TestDeleteNotificationsHandlerSuccess(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 
 	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("Fail get notifications handler status: %v", status)
+		t.Errorf("Fail delete notifications handler status: %v", status)
 		b, _ := io.ReadAll(rr.Body)
 		t.Errorf("body: %v", string(b))
+	}
+}
+
+func TestNotifyNotificationsHandlerSuccess(t *testing.T) {
+	initialiseMocks()
+
+	req, err := http.NewRequest(http.MethodGet, "/notifications/notify", nil)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req = mux.SetURLVars(req, map[string]string{"id": "1"})
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(s.notifyNotificationHandler())
+
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Fail notify notifications handler status: %v", status)
+		b, _ := io.ReadAll(rr.Body)
+		t.Errorf("body: %v", string(b))
+	}
+
+	if len(s.rabbit.(*mock.Rabbit).ProducedMessages) == 0 {
+		t.Errorf("Fail notify notification handler failed. It did not produce messages")
 	}
 }
 

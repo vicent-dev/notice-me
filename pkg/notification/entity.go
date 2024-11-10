@@ -33,6 +33,10 @@ type NotificationPostDto struct {
 	ClientGroupId string `json:"clientGroupId"`
 }
 
+type NotificationNotifyDto struct {
+	ID string `json:"id"`
+}
+
 func (n *Notification) FormatHTML() string {
 	return n.Body + " <br/><br/> <small>" +
 		"Created at: " + n.CreatedAt.Format(time.RFC3339) + " <br/> " +

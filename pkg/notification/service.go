@@ -45,11 +45,53 @@ func PublishCreateNotification(
 	return n, nil
 }
 
+func PublishNotifyNotification(
+	id string,
+	rabbit rabbit.RabbitInterface,
+) error {
+
+	var queueConfigCreate config.QueueConfig
+
+	for _, qc := range rabbit.GetQueuesConfig() {
+		if qc.Name == "notification.notify" {
+			queueConfigCreate = qc
+		}
+	}
+
+	n := &NotificationNotifyDto{id}
+	nBody, err := json.Marshal(n)
+
+	if err != nil {
+		return err
+	}
+
+	err = rabbit.Produce(queueConfigCreate, nBody)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetNotifications(
 	repo repository.Repository[Notification],
 	pageSize, page int,
 ) (*repository.Pagination, error) {
 	return repo.FindPaginated(pageSize, page)
+}
+
+func GetNotification(
+	id string,
+	repo repository.Repository[Notification],
+) (*Notification, error) {
+	n, err := repo.Find(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return n, nil
 }
 
 func DeleteNotification(
