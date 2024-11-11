@@ -63,14 +63,11 @@ This would be a very basic data flow with Notice-Me:
 
 ### Notify notifications flow
 - eventually your system will finish your process related with the notification  (e.g. all the data is finally imported in your system).
-- publish from your system into queue `notification.notify` with the notification ID that you will receive from create endpoint.
+- publish from your system into queue `notification.notify` or make a request to notify endpoint with the notification IDthat you will receive from create endpoint.
 - Notice-Me will consume that message and broadcast that notification to all fronted clients that matches the configured criteria.
 
 ![notice-me diagram](diagram.png)
 
 ## EntryPoints
 
-There is two basic ways to interact with Notice-Me:
-
-- **http**: endpoints are for the websocket connection and for the CRUD of notifications (swagger documentation pending).
-- **amqp**: one consumer for `notification.notify` queue which objective is to notify a notification and marked it as notified.
+Endpoints are for the websocket connection, for the CRUD of notifications and to notify a specific notification (swagger documentation pending).

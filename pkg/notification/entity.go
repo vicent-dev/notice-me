@@ -16,14 +16,16 @@ type Notification struct {
 	NotifiedAt    *time.Time `gorm:"notified_at" json:"NotifiedAt"`
 	ClientId      string     `gorm:"client_id" json:"ClientId"`
 	ClientGroupId string     `gorm:"client_group_id" json:"ClientGroupId"`
+	Instant       bool       `gorm:"instant;default:0" json:"Instant"`
 }
 
-func NewNotification(body, clientId, clientGroupId string) *Notification {
+func NewNotification(body, clientId, clientGroupId string, instant bool) *Notification {
 	return &Notification{
 		ID:            uuid.New(),
 		Body:          body,
 		ClientId:      clientId,
 		ClientGroupId: clientGroupId,
+		Instant:       instant,
 	}
 }
 
@@ -31,6 +33,7 @@ type NotificationPostDto struct {
 	Body          string `json:"body"`
 	ClientId      string `json:"clientId"`
 	ClientGroupId string `json:"clientGroupId"`
+	Instant       bool   `json:"instant"`
 }
 
 type NotificationNotifyDto struct {

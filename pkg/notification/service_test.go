@@ -98,11 +98,13 @@ func TestDeleteNotification(t *testing.T) {
 
 func TestCreateNotification(t *testing.T) {
 	repo := repo_mock.NewRepository[Notification]()
+	rm := mock.NewRabbitMock()
 
 	fn := NewNotification(
 		"foo bar",
 		"*",
 		"*",
+		false,
 	)
 
 	body, err := json.Marshal(fn)
@@ -113,6 +115,7 @@ func TestCreateNotification(t *testing.T) {
 
 	err = CreateNotification(
 		repo,
+		rm,
 		body,
 	)
 
@@ -128,5 +131,51 @@ func TestCreateNotification(t *testing.T) {
 
 	if nPersisted.ID.String() != fn.ID.String() {
 		t.Fatalf("Fail create notification. Notification not persisted. Wrong UUID")
+	}
+
+	if len(rm.(*mock.Rabbit).ProducedMessages) != 0 {
+		t.Fatalf("Fail create notification method instant false. Messages produced")
+	}
+}
+
+func TestCreateNotificationInstant(t *testing.T) {
+	repo := repo_mock.NewRepository[Notification]()
+	rm := mock.NewRabbitMock()
+
+	fn := NewNotification(
+		"foo bar",
+		"*",
+		"*",
+		true,
+	)
+
+	body, err := json.Marshal(fn)
+
+	if err != nil {
+		t.Fatalf("Can not marshal notification: %s", err.Error())
+	}
+
+	err = CreateNotification(
+		repo,
+		rm,
+		body,
+	)
+
+	if err != nil {
+		t.Fatalf("Fail create notification: %s", err.Error())
+	}
+
+	nPersisted, err := repo.Find("0")
+
+	if err != nil {
+		t.Fatalf("Fail create notification. Notification not persisted: %s", err.Error())
+	}
+
+	if nPersisted.ID.String() != fn.ID.String() {
+		t.Fatalf("Fail create notification. Notification not persisted. Wrong UUID")
+	}
+
+	if len(rm.(*mock.Rabbit).ProducedMessages) == 0 {
+		t.Fatalf("Fail create notification method instant false. No notify message produced.")
 	}
 }

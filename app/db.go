@@ -22,7 +22,10 @@ func (s *server) connectDb() {
 
 	s.db = conn
 
-	s.db.AutoMigrate(&notification.Notification{})
+	err = s.db.AutoMigrate(&notification.Notification{})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (s *server) initialiseRepositories() {

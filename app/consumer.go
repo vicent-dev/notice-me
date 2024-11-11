@@ -15,6 +15,6 @@ func (s *server) consumeNotificationNotifyHandler() func([]byte) {
 func (s *server) consumeNotificationCreateHandler() func([]byte) {
 	repo := s.getRepository(notification.RepositoryKey).(repository.Repository[notification.Notification])
 	return func(body []byte) {
-		notification.CreateNotification(repo, body)
+		notification.CreateNotification(repo, s.rabbit, body)
 	}
 }

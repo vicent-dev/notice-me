@@ -20,6 +20,7 @@ func PublishCreateNotification(
 		notificationPostDto.Body,
 		notificationPostDto.ClientId,
 		notificationPostDto.ClientGroupId,
+		notificationPostDto.Instant,
 	)
 
 	var queueConfigCreate config.QueueConfig
@@ -114,7 +115,7 @@ func DeleteNotification(
 	return nil
 }
 
-func CreateNotification(repo repository.Repository[Notification], body []byte) error {
+func CreateNotification(repo repository.Repository[Notification], rabbit rabbit.RabbitInterface, body []byte) error {
 	n := &Notification{}
 
 	err := json.Unmarshal(body, n)
@@ -127,6 +128,15 @@ func CreateNotification(repo repository.Repository[Notification], body []byte) e
 	if err != nil {
 		alog.Error("Cannot create notification: " + err.Error())
 		return err
+	}
+
+	if n.Instant {
+		err = PublishNotifyNotification(n.ID.String(), rabbit)
+
+		if err != nil {
+			alog.Error("Cannot publish notify notification: " + err.Error())
+			return err
+		}
 	}
 
 	return nil
