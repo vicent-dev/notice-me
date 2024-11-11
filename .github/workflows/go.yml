@@ -22,7 +22,7 @@ jobs:
         go-version: '1.23.1'
 
     - name: Build
-      run: make build
+      run: cp static/config.example.yaml static/config.yaml && make build
 
     - name: Test
-      run: make test
+      run: cp static/config.example.yaml static/config.yaml && make test
