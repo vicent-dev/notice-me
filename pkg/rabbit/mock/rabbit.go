@@ -1,6 +1,7 @@
 package mock
 
 import (
+	amqp "github.com/rabbitmq/amqp091-go"
 	"notice-me-server/pkg/config"
 	"notice-me-server/pkg/rabbit"
 )
@@ -12,6 +13,12 @@ type Rabbit struct {
 func NewRabbitMock() rabbit.RabbitInterface {
 	return &Rabbit{}
 }
+
+func (r *Rabbit) GetConnection() *amqp.Connection {
+	return nil
+}
+
+func (r *Rabbit) SetConnection(cnn *amqp.Connection) {}
 
 func (r *Rabbit) Close() error {
 	return nil

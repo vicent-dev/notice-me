@@ -57,9 +57,7 @@ func (s *server) Run() error {
 		websocket.Run()
 	}(s.ws)
 
-	go func(r rabbit.RabbitInterface, consumers map[string]func([]byte)) {
-		r.RunConsumers(consumers)
-	}(s.rabbit, s.consumersMap())
+	s.startConsumers()
 
 	headersOk := handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin"})
 	originsOk := handlers.AllowedOrigins(s.c.Server.Cors)
