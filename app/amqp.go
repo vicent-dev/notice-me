@@ -9,13 +9,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func (s *server) checkAmqp() {
-	for {
-		time.Sleep(time.Duration(1) * time.Second)
-		alog.Info("rabbitmq connected: %v", !s.rabbit.GetConnection().IsClosed())
-	}
-}
-
 func (s *server) reconnect() {
 
 	go func() {
@@ -23,9 +16,9 @@ func (s *server) reconnect() {
 			reason, ok := <-s.rabbit.GetConnection().NotifyClose(make(chan *amqp.Error))
 			if !ok {
 				alog.Info("rabbitmq connection closed")
-			} else {
-				alog.Info("rabbitmq ", reason)
+				break
 			}
+
 			alog.Info("rabbitmq connection closed unexpectedly, reason: %v", reason)
 
 			for {
