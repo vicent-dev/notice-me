@@ -12,7 +12,7 @@ import (
 func (s *server) connectDb() {
 	var err error
 
-	connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", s.c.Db.User, s.c.Db.Pwd, s.c.Db.Host, s.c.Db.Port, s.c.Db.Name)
+	connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", s.c.Db.User, s.c.Db.Pwd, s.c.Db.Host, s.c.Db.Port, s.c.Db.Name)
 
 	conn, err := gorm.Open(mysql.Open(connection), &gorm.Config{})
 
@@ -26,6 +26,8 @@ func (s *server) connectDb() {
 	if err != nil {
 		panic(err)
 	}
+
+	s.db.Exec("ALTER DATABASE " + s.c.Db.Name + " character set utf8mb4 collate utf8mb4_unicode_ci;")
 }
 
 func (s *server) initialiseRepositories() {
