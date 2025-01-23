@@ -105,6 +105,7 @@ func TestCreateNotification(t *testing.T) {
 		"*",
 		"*",
 		false,
+		"",
 	)
 
 	body, err := json.Marshal(fn)
@@ -116,6 +117,7 @@ func TestCreateNotification(t *testing.T) {
 	err = CreateNotification(
 		repo,
 		rm,
+		nil,
 		body,
 	)
 
@@ -147,6 +149,7 @@ func TestCreateNotificationInstant(t *testing.T) {
 		"*",
 		"*",
 		true,
+		"",
 	)
 
 	body, err := json.Marshal(fn)
@@ -158,6 +161,7 @@ func TestCreateNotificationInstant(t *testing.T) {
 	err = CreateNotification(
 		repo,
 		rm,
+		nil,
 		body,
 	)
 
