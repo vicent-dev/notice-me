@@ -1,9 +1,9 @@
 package hub
 
 import (
-	"slices"
-
+	"encoding/json"
 	"github.com/gorilla/websocket"
+	"slices"
 )
 
 type HubInterface interface {
@@ -11,6 +11,7 @@ type HubInterface interface {
 	RegisterClient(c *Client)
 	UnregisterClient(c *Client)
 	Notify(clientId, clientGroupId string, body []byte)
+	NotifyError(originClientId string, body []byte) error
 	Clients() []*Client
 }
 
@@ -88,6 +89,27 @@ func (ws *Hub) Notify(clientId, clientGroupId string, body []byte) {
 	for _, client := range clients {
 		client.Send(body)
 	}
+}
+
+func (ws *Hub) NotifyError(originClientId string, body []byte) error {
+	// broadcast to all clients
+	clients := ws.getClientsToNotify(originClientId, "")
+
+	errorBody := make(map[string]string)
+
+	errorBody["error"] = string(body)
+
+	errorBodyBytes, err := json.Marshal(errorBody)
+
+	if err != nil {
+		return err
+	}
+
+	for _, client := range clients {
+		client.Send(errorBodyBytes)
+	}
+
+	return nil
 }
 
 func (ws *Hub) Run() {
