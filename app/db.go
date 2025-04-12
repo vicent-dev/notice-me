@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/repository"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -19,6 +20,12 @@ func (s *server) connectDb() {
 	if err != nil {
 		panic(err)
 	}
+
+	sqlDB, _ := conn.DB()
+
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(30)
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
 
 	s.db = conn
 
