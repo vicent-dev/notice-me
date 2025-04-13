@@ -7,7 +7,7 @@ import (
 type serverErrorLogWriter struct{}
 
 func (*serverErrorLogWriter) Write(p []byte) (int, error) {
-	// ignore logs - it's handled by alog package
+	// ignore logs - it is handled by alog package
 	return len(p), nil
 }
 
