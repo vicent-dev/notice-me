@@ -65,11 +65,18 @@ func (s *server) Run() error {
 
 	handler := handlers.CORS(headersOk, originsOk, methodsOk)(handlers.RecoveryHandler()(s.r))
 
-	if s.c.Server.Env == "production" {
+	log := newServerErrorLog()
 
-		return http.ListenAndServeTLS(":"+s.c.Server.Port, s.c.Server.TlsCert, s.c.Server.TlsKey, handler)
+	server := &http.Server{
+		Addr:     ":" + s.c.Server.Port,
+		ErrorLog: log,
+		Handler:  handler,
+	}
+
+	if s.c.Server.Env == "production" {
+		return server.ListenAndServeTLS(s.c.Server.TlsCert, s.c.Server.TlsKey)
 	} else {
-		return http.ListenAndServe(":"+s.c.Server.Port, handler)
+		return server.ListenAndServe()
 	}
 }
 
