@@ -1,0 +1,163 @@
+openapi: 4.0.3
+info:
+  title: Notice Me Server API
+  description: API documentation for the Notice Me Server project.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8090
+    description: Local development server
+paths:
+  /ws:
+    get:
+      summary: WebSocket connection
+      description: Establish a WebSocket connection.
+      responses:
+        '101':
+          description: Switching Protocols
+        '400':
+          description: Bad Request
+  /api/docs:
+    get:
+      summary: Get API documentation
+      description: Returns the API documentation in HTML format.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/html:
+              schema:
+                type: string
+  /api/notifications:
+    post:
+      summary: Create a notification
+      description: Creates a new notification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPostDto'
+      responses:
+        '200':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request
+    get:
+      summary: Get notifications
+      description: Retrieves a paginated list of notifications.
+      parameters:
+        - name: pageSize
+          in: query
+          description: Number of notifications per page.
+          required: false
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: Page number.
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Bad Request
+  /api/notifications/{id}:
+    get:
+      summary: Get a notification
+      description: Retrieves a notification by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request
+    delete:
+      summary: Delete a notification
+      description: Deletes a notification by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification deleted successfully
+        '400':
+          description: Bad Request
+  /api/notifications/notify/{id}:
+    get:
+      summary: Notify a notification
+      description: Sends a notification by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification sent successfully
+        '400':
+          description: Bad Request
+components:
+  schemas:
+    NotificationPostDto:
+      type: object
+      properties:
+        body:
+          type: string
+        clientId:
+          type: string
+        clientGroupId:
+          type: string
+        instant:
+          type: boolean
+        originClientId:
+          type: string
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        body:
+          type: string
+        clientId:
+          type: string
+        clientGroupId:
+          type: string
+        notifiedAt:
+          type: string
+          format: date-time
+    Pagination:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
