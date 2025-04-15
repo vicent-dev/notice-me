@@ -1,12 +1,12 @@
 package repository
 
 type Pagination struct {
-	Limit      int         `json:"limit,omitempty;query:limit"`
-	Page       int         `json:"page,omitempty;query:page"`
-	Sort       string      `json:"sort,omitempty;query:sort"`
-	TotalRows  int64       `json:"total_rows"`
-	TotalPages int         `json:"total_pages"`
-	Rows       interface{} `json:"rows"`
+	Limit      int         `json:"Limit,omitempty;query:limit"`
+	Page       int         `json:"Page,omitempty;query:page"`
+	Sort       string      `json:"Sort,omitempty;query:sort"`
+	TotalRows  int64       `json:"TotalRows"`
+	TotalPages int         `json:"TotalPages"`
+	Rows       interface{} `json:"Rows"`
 }
 
 const (

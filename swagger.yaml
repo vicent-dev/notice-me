@@ -1,0 +1,168 @@
+openapi: 3.0.1
+info:
+  title: Notice-Me Server API
+  description: API documentation for the Notice-Me Server project.
+  version: 1.0.0
+paths:
+  /ws:
+    get:
+      summary: WebSocket connection
+      description: Establish a WebSocket connection.
+      parameters:
+        - name: id
+          in: query
+          description: Client Id.
+          required: false
+          schema:
+            type: string
+        - name: groupId
+          in: query
+          description: Client Group Id.
+          required: false
+          schema:
+            type: integer
+      responses:
+        '101':
+          description: Switching Protocols
+        '400':
+          description: Bad Request
+  /api/notifications:
+    post:
+      summary: Create a notification
+      description: Creates a new notification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPostDto'
+      responses:
+        '200':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPostDto'
+        '400':
+          description: Bad Request
+    get:
+      summary: Get notifications
+      description: Retrieves a paginated list of notifications.
+      parameters:
+        - name: pageSize
+          in: query
+          description: Number of notifications per page.
+          required: false
+          schema:
+            type: integer
+        - name: page
+          in: query
+          description: Page number.
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Bad Request
+  /api/notifications/{id}:
+    get:
+      summary: Get a notification
+      description: Retrieves a notification by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+        '400':
+          description: Bad Request
+    delete:
+      summary: Delete a notification
+      description: Deletes a notification by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification deleted successfully
+        '400':
+          description: Bad Request
+  /api/notifications/notify/{id}:
+    get:
+      summary: Notify a notification
+      description: Sends a notification by its ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notification sent successfully
+        '400':
+          description: Bad Request
+components:
+  schemas:
+    NotificationPostDto:
+      type: object
+      properties:
+        Body:
+          type: string
+        ClientId:
+          type: string
+        ClientGroupId:
+          type: string
+        Instant:
+          type: boolean
+        OriginClientId:
+          type: string
+    Notification:
+      type: object
+      properties:
+        ID:
+          type: string
+        Body:
+          type: string
+        ClientId:
+          type: string
+        ClientGroupId:
+          type: string
+        NotifiedAt:
+          type: string
+          format: date-time
+        CreatedAt:
+          type: string
+          format: date-time
+        UpdatedAt:
+          type: string
+          format: date-time
+    Pagination:
+      type: object
+      properties:
+        Items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        TotalRows:
+          type: integer
+        TotalPages:
+          type: integer
+        Page:
+          type: integer
