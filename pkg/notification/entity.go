@@ -32,11 +32,11 @@ func NewNotification(body, clientId, clientGroupId string, instant bool, originC
 }
 
 type NotificationPostDto struct {
-	Body           string `json:"body"`
-	ClientId       string `json:"clientId"`
-	ClientGroupId  string `json:"clientGroupId"`
-	Instant        bool   `json:"instant"`
-	OriginClientId string `json:"originClientId"`
+	Body           string `json:"Body"`
+	ClientId       string `json:"ClientId"`
+	ClientGroupId  string `json:"ClientGroupId"`
+	Instant        bool   `json:"Instant"`
+	OriginClientId string `json:"OriginClientId"`
 }
 
 type NotificationNotifyDto struct {

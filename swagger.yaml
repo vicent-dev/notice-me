@@ -1,13 +1,26 @@
 openapi: 3.0.1
 info:
-  title: Notice Me Server API
-  description: API documentation for the Notice Me Server project.
+  title: Notice-Me Server API
+  description: API documentation for the Notice-Me Server project.
   version: 1.0.0
 paths:
   /ws:
     get:
       summary: WebSocket connection
       description: Establish a WebSocket connection.
+      parameters:
+        - name: id
+          in: query
+          description: Client Id.
+          required: false
+          schema:
+            type: string
+        - name: groupId
+          in: query
+          description: Client Group Id.
+          required: false
+          schema:
+            type: integer
       responses:
         '101':
           description: Switching Protocols
@@ -110,40 +123,46 @@ components:
     NotificationPostDto:
       type: object
       properties:
-        body:
+        Body:
           type: string
-        clientId:
+        ClientId:
           type: string
-        clientGroupId:
+        ClientGroupId:
           type: string
-        instant:
+        Instant:
           type: boolean
-        originClientId:
+        OriginClientId:
           type: string
     Notification:
       type: object
       properties:
-        id:
+        ID:
           type: string
-        body:
+        Body:
           type: string
-        clientId:
+        ClientId:
           type: string
-        clientGroupId:
+        ClientGroupId:
           type: string
-        notifiedAt:
+        NotifiedAt:
+          type: string
+          format: date-time
+        CreatedAt:
+          type: string
+          format: date-time
+        UpdatedAt:
           type: string
           format: date-time
     Pagination:
       type: object
       properties:
-        items:
+        Items:
           type: array
           items:
             $ref: '#/components/schemas/Notification'
-        total:
+        TotalRows:
           type: integer
-        page:
+        TotalPages:
           type: integer
-        pageSize:
+        Page:
           type: integer
