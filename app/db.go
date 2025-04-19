@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"notice-me-server/pkg/auth"
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/repository"
 	"time"
@@ -29,7 +30,7 @@ func (s *server) connectDb() {
 
 	s.db = conn
 
-	err = s.db.AutoMigrate(&notification.Notification{})
+	err = s.db.AutoMigrate(&notification.Notification{}, &auth.ApiKey{})
 	if err != nil {
 		panic(err)
 	}
@@ -45,6 +46,7 @@ func (s *server) initialiseRepositories() {
 	s.repositories = make(map[string]interface{})
 
 	s.repositories[notification.RepositoryKey] = repository.NewGorm[notification.Notification](s.db)
+	s.repositories[auth.RepositoryKey] = repository.NewGorm[auth.ApiKey](s.db)
 }
 
 func (s *server) getRepository(name string) interface{} {

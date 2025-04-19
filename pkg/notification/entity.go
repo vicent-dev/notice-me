@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"notice-me-server/pkg/auth"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,13 +12,15 @@ const RepositoryKey = "notification"
 
 type Notification struct {
 	gorm.Model
-	ID             uuid.UUID  `gorm:"type:uuid"`
-	Body           string     `gorm:"body" json:"Body"`
-	NotifiedAt     *time.Time `gorm:"notified_at" json:"NotifiedAt"`
-	ClientId       string     `gorm:"client_id" json:"ClientId"`
-	ClientGroupId  string     `gorm:"client_group_id" json:"ClientGroupId"`
-	Instant        bool       `gorm:"instant;default:0" json:"Instant"`
-	OriginClientId string     `json:"OriginClientId"`
+	ID             uuid.UUID    `gorm:"type:uuid"`
+	Body           string       `gorm:"body" json:"Body"`
+	NotifiedAt     *time.Time   `gorm:"notified_at" json:"NotifiedAt"`
+	ClientId       string       `gorm:"client_id" json:"ClientId"`
+	ClientGroupId  string       `gorm:"client_group_id" json:"ClientGroupId"`
+	Instant        bool         `gorm:"instant;default:0" json:"Instant"`
+	OriginClientId string       `json:"OriginClientId"`
+	ApiKeyID       string       `json:"-"`
+	ApiKey         *auth.ApiKey `json:"-"`
 }
 
 func NewNotification(body, clientId, clientGroupId string, instant bool, originClientId string) *Notification {
@@ -37,6 +40,7 @@ type NotificationPostDto struct {
 	ClientGroupId  string `json:"clientGroupId"`
 	Instant        bool   `json:"instant"`
 	OriginClientId string `json:"originClientId"`
+	ApiKeyValue    string `json:"apiKey"`
 }
 
 type NotificationNotifyDto struct {
