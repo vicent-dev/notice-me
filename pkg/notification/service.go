@@ -2,6 +2,7 @@ package notification
 
 import (
 	"encoding/json"
+	"errors"
 	"notice-me-server/pkg/auth"
 	"notice-me-server/pkg/config"
 	"notice-me-server/pkg/hub"
@@ -129,8 +130,15 @@ func CreateNotification(repo repository.Repository[Notification], apiKeyRepo rep
 
 	apiKey, err := apiKeyRepo.FindBy(repository.Field{Column: "Value", Value: notificationPostDto.ApiKeyValue})
 
-	if err != nil {
-		alog.Error("Cannot find any api key by the id: " + notificationPostDto.ApiKeyValue)
+	if err != nil || len(apiKey) == 0 {
+		errorMessage := "Cannot find any api key by the id: " + notificationPostDto.ApiKeyValue
+
+		alog.Error(errorMessage)
+
+		if err != nil {
+			err = errors.New(errorMessage)
+		}
+
 		return err
 	}
 

@@ -33,9 +33,9 @@ func (s *server) authMiddleware(next http.Handler) http.Handler {
 
 		repo := s.getRepository(auth.RepositoryKey).(repository.Repository[auth.ApiKey])
 
-		_, err := repo.FindBy(repository.Field{Column: "Value", Value: apiKeyHeader})
+		apiKeysMatch, err := repo.FindBy(repository.Field{Column: "Value", Value: apiKeyHeader})
 
-		if err != nil {
+		if err != nil || len(apiKeysMatch) == 0 {
 			s.writeErrorResponse(w, errors.New("invalid API key"), http.StatusUnauthorized)
 			return
 		}
