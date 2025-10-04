@@ -2,6 +2,7 @@ package notification
 
 import (
 	"encoding/json"
+	"notice-me-server/pkg/auth"
 	"notice-me-server/pkg/rabbit/mock"
 	repo_mock "notice-me-server/pkg/repository/mock"
 	"testing"
@@ -98,6 +99,8 @@ func TestDeleteNotification(t *testing.T) {
 
 func TestCreateNotification(t *testing.T) {
 	repo := repo_mock.NewRepository[Notification]()
+	repoApiKey := repo_mock.NewRepository[auth.ApiKey]()
+
 	rm := mock.NewRabbitMock()
 
 	fn := NewNotification(
@@ -116,6 +119,7 @@ func TestCreateNotification(t *testing.T) {
 
 	err = CreateNotification(
 		repo,
+		repoApiKey,
 		rm,
 		nil,
 		body,
@@ -142,6 +146,8 @@ func TestCreateNotification(t *testing.T) {
 
 func TestCreateNotificationInstant(t *testing.T) {
 	repo := repo_mock.NewRepository[Notification]()
+	repoApiKey := repo_mock.NewRepository[auth.ApiKey]()
+
 	rm := mock.NewRabbitMock()
 
 	fn := NewNotification(
@@ -160,6 +166,7 @@ func TestCreateNotificationInstant(t *testing.T) {
 
 	err = CreateNotification(
 		repo,
+		repoApiKey,
 		rm,
 		nil,
 		body,
