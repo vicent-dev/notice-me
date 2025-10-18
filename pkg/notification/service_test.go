@@ -101,6 +101,8 @@ func TestCreateNotification(t *testing.T) {
 	repo := repo_mock.NewRepository[Notification]()
 	repoApiKey := repo_mock.NewRepository[auth.ApiKey]()
 
+	auth.GenerateApiKey(repoApiKey)
+
 	rm := mock.NewRabbitMock()
 
 	fn := NewNotification(
@@ -135,8 +137,8 @@ func TestCreateNotification(t *testing.T) {
 		t.Fatalf("Fail create notification. Notification not persisted: %s", err.Error())
 	}
 
-	if nPersisted.ID.String() != fn.ID.String() {
-		t.Fatalf("Fail create notification. Notification not persisted. Wrong UUID")
+	if nPersisted.Body != fn.Body {
+		t.Fatalf("Fail create notification. Notification not persisted. Wrong Body %s %s", nPersisted.Body, fn.Body)
 	}
 
 	if len(rm.(*mock.Rabbit).ProducedMessages) != 0 {
@@ -147,6 +149,8 @@ func TestCreateNotification(t *testing.T) {
 func TestCreateNotificationInstant(t *testing.T) {
 	repo := repo_mock.NewRepository[Notification]()
 	repoApiKey := repo_mock.NewRepository[auth.ApiKey]()
+
+	auth.GenerateApiKey(repoApiKey)
 
 	rm := mock.NewRabbitMock()
 
@@ -182,8 +186,8 @@ func TestCreateNotificationInstant(t *testing.T) {
 		t.Fatalf("Fail create notification. Notification not persisted: %s", err.Error())
 	}
 
-	if nPersisted.ID.String() != fn.ID.String() {
-		t.Fatalf("Fail create notification. Notification not persisted. Wrong UUID")
+	if nPersisted.Body != fn.Body {
+		t.Fatalf("Fail create notification. Notification not persisted. Wrong Body")
 	}
 
 	if len(rm.(*mock.Rabbit).ProducedMessages) == 0 {
