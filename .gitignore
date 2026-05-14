@@ -2,3 +2,4 @@
 .env
 static/config.yaml
 main
+tasks/*
