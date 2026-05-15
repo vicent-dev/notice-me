@@ -1,5 +1,22 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "second_constantine/deepseek-coder-v2:16b": {
+          "name": "DeepSeek Coder V2 16B (local)"
+        },
+        "qwen3.6:latest": {
+          "name": "Qwen 3.6 (local)"
+        }
+      }
+    }
+  },
   "default_agent": "orchestrator",
   "instructions": ["AGENTS.md"],
   "agent": {
@@ -48,6 +65,18 @@
         "bash": "allow",
         "read": "allow",
         "task": "allow"
+      }
+    },
+    "git-agent": {
+      "description": "Stages, commits, pushes a branch, and opens a GitHub pull request",
+      "mode": "subagent",
+      "hidden": true,
+      "color": "success",
+      "permission": {
+        "edit": "deny",
+        "bash": "allow",
+        "read": "allow",
+        "task": "deny"
       }
     }
   }
