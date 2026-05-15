@@ -42,6 +42,12 @@ func (s *server) authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		// Check if the key has been revoked
+		if apiKeysMatch[0].RevokedAt != nil {
+			s.writeErrorResponse(w, errors.New("API key has been revoked"), http.StatusUnauthorized)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

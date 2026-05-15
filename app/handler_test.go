@@ -1,6 +1,7 @@
 package app
 
 import (
+	"notice-me-server/pkg/auth"
 	"bytes"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -220,6 +221,7 @@ func initialiseMocks() {
 
 	repositories := make(map[string]interface{})
 	notificationsRepo := repo_mock.NewRepository[notification.Notification]()
+	authRepo := repo_mock.NewRepository[auth.ApiKey]()
 
 	notificationsRepo.CreateBulk([]notification.Notification{
 		{},
@@ -228,6 +230,7 @@ func initialiseMocks() {
 	})
 
 	repositories[notification.RepositoryKey] = notificationsRepo
+	repositories[auth.RepositoryKey] = authRepo
 
 	c := &config.Config{}
 
