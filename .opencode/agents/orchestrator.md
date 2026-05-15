@@ -52,7 +52,7 @@ Before starting the pipeline, verify the working tree is clean (`git status --po
 
 ### Step F — Git PR
 - If verification **passes**, ask the user: "Task N passed on branch `feature/<branch>`. Create PR? (y/n)"
-  - If yes: call the `git-agent` subagent with `task_num`, `task_title`, and `branch_name`.
+   - If yes: call the `git-agent` subagent with `task_num`, `task_title`, `branch_name`, and `base_branch`.
   - If no: proceed without committing.
 
 4. After all 8 tasks are done, present a final summary table.
