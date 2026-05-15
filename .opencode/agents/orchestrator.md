@@ -22,29 +22,49 @@ Before starting the pipeline, verify the working tree is clean (`git status --po
 1. Read `AGENTS.md` for project conventions. Read `tasks/` directory for the individual task files (01-fix-cli.md through 08-ws-auth.md).
 2. Maintain a todo list using the `todowrite` tool tracking each task's status.
 3. For each task, run the pipeline:
-   a. **Branch creation** — Create a feature branch for this task.
-      - Determine the base branch: `$(git rev-parse --abbrev-ref HEAD)` (the currently checked-out branch).
-      - Derive the branch name from the task filename (e.g., `01-fix-cli.md` → `feature/01-fix-cli`).
-      - If the branch already exists, ask the user whether to reuse it or skip the task.
-      - Otherwise: `git checkout -b feature/<task-num>-<slug>`.
-   b. **Spec Generation** — Call the `spec-generator` subagent via the Task tool.
-      - Prompt it with: the task number, title, description, and files involved (from AGENTS.md).
-      - Instruct it to read the current codebase and produce a full SDD document.
-      - It will return an SDD as markdown.
-   c. **Implementation** — Call the `implementer` subagent via the Task tool.
-      - Pass it the full SDD from step (b).
-      - Instruct it to implement every change exactly as specified.
-      - It will return an implementation summary (what was changed, any deviations).
-   d. **Verification** — Call the `verifier` subagent via the Task tool.
-      - Pass it the implementation summary from step (c).
-      - Instruct it to run `go build ./...` and `go test ./... -cover`.
-      - It will return pass/fail with details.
-   e. If verification **fails**, go back to step (c) with the failure details appended.
-      - If it fails twice, report to the user and ask for guidance.
-   f. If verification **passes**, ask the user: "Task N passed on branch `feature/<branch>`. Commit changes? (y/n)"
-      - If yes: `git add -A` and `git commit -m "task-<num>: <title>"`.
-      - If no: proceed without committing.
+
+### Step A — Branch creation
+- Determine the base branch: `$(git rev-parse --abbrev-ref HEAD)` (the currently checked-out branch).
+- Derive the branch name from the task filename (e.g., `01-fix-cli.md` → `feature/01-fix-cli`).
+- If the branch already exists, ask the user whether to reuse it or skip the task.
+- Otherwise: `git checkout -b "feature/<task-num>-<slug>"` (use the literal prefix `feature/`, not `task/`).
+
+### Step B — Spec Generation
+- Check if `sdd/<task-num>-<slug>.md` already exists.
+  - If it exists: skip spec generation, proceed to step C.
+  - If it does not exist: call the `spec-generator` subagent with `task_num` and `task_slug`.
+- The spec-generator writes the SDD to `sdd/<task-num>-<slug>.md`.
+
+### Step C — Implementation
+- Call the `implementer` subagent with `task_num` and `task_slug`.
+- The implementer reads `sdd/<task-num>-<slug>.md` and implements every change.
+- It will return an implementation summary (what was changed, any deviations).
+
+### Step D — Verification
+- Call the `verifier` subagent via the Task tool.
+- Pass it the implementation summary from step (c).
+- Instruct it to run `go build ./...` and `go test ./... -cover`.
+- It will return pass/fail with details.
+
+### Step E — Retry on failure
+- If verification **fails**, go back to step C with the failure details appended.
+- If it fails twice, report to the user and ask for guidance.
+
+### Step F — Git PR
+- If verification **passes**, ask the user: "Task N passed on branch `feature/<branch>`. Create PR? (y/n)"
+  - If yes: call the `git-agent` subagent with `task_num`, `task_title`, and `branch_name`.
+  - If no: proceed without committing.
+
 4. After all 8 tasks are done, present a final summary table.
+
+## Resumption
+
+The pipeline is **checkpoint-based**. SDD files in `sdd/` serve as the artifact between steps. If the session is interrupted:
+
+- Check `sdd/<task-num>-<slug>.md` to know which tasks have a spec.
+- If spec exists but code changes exist on the branch, the implementer ran but didn't complete — call the implementer again with the failure context.
+- If no spec exists, call the spec-generator.
+- Never re-run a step whose artifact already exists unless explicitly requested.
 
 ## Rules
 
