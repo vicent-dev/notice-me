@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"notice-me-server/pkg/auth"
 	"bytes"
 	"github.com/gorilla/mux"
@@ -12,6 +13,7 @@ import (
 	"notice-me-server/pkg/hub"
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/rabbit/mock"
+	"notice-me-server/pkg/repository"
 	repo_mock "notice-me-server/pkg/repository/mock"
 	"strings"
 	"testing"
@@ -195,12 +197,20 @@ func TestDeleteNotificationsHandlerFail(t *testing.T) {
 func TestWSHandlerSuccess(t *testing.T) {
 	initialiseMocks()
 
+	// Create a valid API key in the mock auth repository
+	plaintext, ak := auth.NewApiKey()
+	authRepo := s.getRepository(auth.RepositoryKey).(repository.Repository[auth.ApiKey])
+	_ = authRepo.Create(ak)
+
 	server := httptest.NewServer(http.HandlerFunc(s.wsHandler()))
 	defer server.Close()
 
 	url := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
 
-	client, rr, err := websocket.DefaultDialer.Dial(url, nil)
+	header := http.Header{}
+	header.Set(auth.API_KEY_HEADER, plaintext)
+
+	client, rr, err := websocket.DefaultDialer.Dial(url, header)
 
 	if err != nil {
 		t.Fatalf("could not connect to WebSocket server: %v", err)
@@ -209,9 +219,54 @@ func TestWSHandlerSuccess(t *testing.T) {
 	defer client.Close()
 
 	if status := rr.StatusCode; status != http.StatusSwitchingProtocols {
-		t.Errorf("Fail connect ws fail handler status: %v", status)
+		t.Errorf("Fail connect ws handler status: %v", status)
 		b, _ := io.ReadAll(rr.Body)
 		t.Errorf("body: %v", string(b))
+	}
+}
+
+func TestWSHandlerMissingKey(t *testing.T) {
+	initialiseMocks()
+
+	server := httptest.NewServer(http.HandlerFunc(s.wsHandler()))
+	defer server.Close()
+
+	// Make a regular HTTP request to see the 401 response
+	resp, err := http.Get(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Errorf("Expected 401 for missing key, got %d", resp.StatusCode)
+	}
+
+	var body map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
+
+	if body["error"] == nil {
+		t.Errorf("Expected error message in response body")
+	}
+}
+
+func TestWSHandlerInvalidKey(t *testing.T) {
+	initialiseMocks()
+
+	server := httptest.NewServer(http.HandlerFunc(s.wsHandler()))
+	defer server.Close()
+
+	url := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
+
+	header := http.Header{}
+	header.Set(auth.API_KEY_HEADER, "invalid-key-123")
+
+	_, _, err := websocket.DefaultDialer.Dial(url, header)
+
+	if err == nil {
+		t.Errorf("Expected error for invalid key, got nil")
 	}
 }
 
