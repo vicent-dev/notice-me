@@ -90,3 +90,32 @@ func TestAuthMiddlewareRevokedKey(t *testing.T) {
 		t.Errorf("Expected 401 for revoked key, got %d", rr.Code)
 	}
 }
+
+func TestAuthMiddlewareIncrementsRequestCount(t *testing.T) {
+	repo := repo_mock.NewRepository[auth.ApiKey]()
+	plaintext, ak := auth.NewApiKey()
+	_ = repo.Create(ak)
+
+	repositories := make(map[string]interface{})
+	repositories[auth.RepositoryKey] = repo
+
+	s := &server{
+		repositories: repositories,
+		c:            &config.Config{},
+	}
+
+	handler := s.authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/api/test", nil)
+	req.Header.Set(auth.API_KEY_HEADER, plaintext)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Verify RequestCount was incremented
+	key, _ := repo.Find("0")
+	if key.RequestCount != 1 {
+		t.Errorf("Expected RequestCount=1, got %d", key.RequestCount)
+	}
+}
