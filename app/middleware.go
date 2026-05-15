@@ -48,6 +48,10 @@ func (s *server) authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		// Increment request count (best-effort, do not fail on error)
+		apiKeysMatch[0].RequestCount++
+		_ = repo.Update(apiKeysMatch[0])
+
 		next.ServeHTTP(w, r)
 	})
 }
