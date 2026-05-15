@@ -164,6 +164,33 @@ func (s *server) wsHandler() func(w http.ResponseWriter, r *http.Request) {
 	cors := s.c.Server.Cors
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Authenticate: check X-API-Key header first, fall back to query param
+		apiKeyValue := r.Header.Get(auth.API_KEY_HEADER)
+		if apiKeyValue == "" {
+			apiKeyValue = r.URL.Query().Get("apiKey")
+		}
+
+		if apiKeyValue == "" {
+			s.writeErrorResponse(w, errors.New("missing "+auth.API_KEY_HEADER+" header or apiKey query param"), http.StatusUnauthorized)
+			return
+		}
+
+		// Validate the key using hash lookup
+		hashedKey := auth.HashApiKey(apiKeyValue)
+		repo := s.getRepository(auth.RepositoryKey).(repository.Repository[auth.ApiKey])
+		apiKeysMatch, err := repo.FindBy(repository.Field{Column: "Value", Value: hashedKey})
+
+		if err != nil || len(apiKeysMatch) == 0 {
+			s.writeErrorResponse(w, errors.New("invalid API key"), http.StatusUnauthorized)
+			return
+		}
+
+		// Check if key is revoked
+		if apiKeysMatch[0].RevokedAt != nil {
+			s.writeErrorResponse(w, errors.New("API key has been revoked"), http.StatusUnauthorized)
+			return
+		}
+
 		hub.Upgrader.CheckOrigin = func(r *http.Request) bool {
 			for _, host := range cors {
 				if host == r.Host {
