@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -13,9 +14,10 @@ const RepositoryKey = "auth"
 
 type ApiKey struct {
 	gorm.Model
-	ID           uuid.UUID `gorm:"type:uuid"`
+	ID           uuid.UUID  `gorm:"type:uuid"`
 	Value        string
 	RequestCount int
+	RevokedAt    *time.Time `gorm:"default:null"`
 }
 
 // HashApiKey computes the SHA-256 digest of plaintext and returns it as a
@@ -35,5 +37,6 @@ func NewApiKey() (string, *ApiKey) {
 		ID:           uuid.New(),
 		Value:        HashApiKey(rawUUID),
 		RequestCount: 0,
+		RevokedAt:    nil,
 	}
 }

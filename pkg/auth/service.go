@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"errors"
+	"time"
+
 	"notice-me-server/pkg/repository"
 )
 
@@ -16,4 +19,17 @@ func GenerateApiKey(repo repository.Repository[ApiKey]) (string, error) {
 	}
 
 	return plaintext, nil
+}
+
+// RevokeApiKey marks an API key as revoked by setting its RevokedAt timestamp
+// to the current time. Returns an error if the key is not found.
+func RevokeApiKey(id string, repo repository.Repository[ApiKey]) error {
+	ak, err := repo.Find(id)
+	if err != nil {
+		return errors.New("API key not found")
+	}
+
+	now := time.Now()
+	ak.RevokedAt = &now
+	return repo.Update(ak)
 }
