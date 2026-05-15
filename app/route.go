@@ -12,6 +12,10 @@ func (s *server) routes() {
 	apiRouter.Use(s.jsonMiddleware)
 	apiRouter.Use(s.authMiddleware)
 
+	// auth key management
+	apiRouter.HandleFunc("/auth/keys", s.listKeysHandler()).Methods("GET")
+	apiRouter.HandleFunc("/auth/keys/{id}", s.revokeKeyHandler()).Methods("DELETE")
+
 	// notifications CRUD
 	apiRouter.HandleFunc("/docs", s.docsHandler()).Methods("GET")
 	apiRouter.HandleFunc("/notifications", s.createNotificationHandler()).Methods("POST")

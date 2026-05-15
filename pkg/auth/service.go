@@ -33,3 +33,19 @@ func RevokeApiKey(id string, repo repository.Repository[ApiKey]) error {
 	ak.RevokedAt = &now
 	return repo.Update(ak)
 }
+
+// ListApiKeys returns all API keys from the repository.
+// The returned keys include the hashed Value field — callers must not expose it.
+func ListApiKeys(repo repository.Repository[ApiKey]) ([]ApiKey, error) {
+	result, err := repo.FindPaginated(1000, 1)
+	if err != nil {
+		return nil, err
+	}
+
+	rows := result.Rows.([]*ApiKey)
+	keys := make([]ApiKey, len(rows))
+	for i, row := range rows {
+		keys[i] = *row
+	}
+	return keys, nil
+}
