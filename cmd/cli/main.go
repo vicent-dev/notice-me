@@ -1,19 +1,25 @@
 package main
 
 import (
-	"github.com/en-vee/alog"
+	"fmt"
 	"notice-me-server/app"
+	"notice-me-server/pkg/config"
 )
 
 func main() {
-	s := app.NewServer()
+	cfg := config.LoadConfig()
 
-	apiKey, err := s.GenerateApiKeyHandler()
-
+	db, err := app.InitDB(cfg)
 	if err != nil {
-		alog.Error("something went wrong: %v", err)
+		fmt.Printf("Error connecting to database: %v\n", err)
 		return
 	}
 
-	alog.Info("Api key generated successfully: " + apiKey.Value)
+	apiKey, err := app.GenerateApiKeyCLI(db)
+	if err != nil {
+		fmt.Printf("Error generating API key: %v\n", err)
+		return
+	}
+
+	fmt.Println(apiKey.Value)
 }

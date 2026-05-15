@@ -3,10 +3,14 @@ package app
 import (
 	"notice-me-server/pkg/auth"
 	"notice-me-server/pkg/repository"
+
+	"gorm.io/gorm"
 )
 
-func (s *server) GenerateApiKeyHandler() (*auth.ApiKey, error) {
-	repo := s.getRepository(auth.RepositoryKey).(repository.Repository[auth.ApiKey])
-
+// GenerateApiKeyCLI generates an API key using only a *gorm.DB connection.
+// It creates an auth repository, generates a key, persists it, and returns it.
+// This function does not require RabbitMQ, HTTP routes, or any other server infrastructure.
+func GenerateApiKeyCLI(db *gorm.DB) (*auth.ApiKey, error) {
+	repo := repository.NewGorm[auth.ApiKey](db)
 	return auth.GenerateApiKey(repo)
 }
