@@ -15,11 +15,11 @@ func main() {
 		return
 	}
 
-	apiKey, err := app.GenerateApiKeyCLI(db)
+	plaintext, err := app.GenerateApiKeyCLI(db)
 	if err != nil {
 		fmt.Printf("Error generating API key: %v\n", err)
 		return
 	}
 
-	fmt.Println(apiKey.Value)
+	fmt.Println(plaintext)
 }
