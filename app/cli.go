@@ -16,3 +16,10 @@ func GenerateApiKeyCLI(db *gorm.DB) (string, error) {
 	repo := repository.NewGorm[auth.ApiKey](db)
 	return auth.GenerateApiKey(repo)
 }
+
+// RevokeApiKeyCLI revokes an API key by its UUID using only a *gorm.DB
+// connection. It creates an auth repository and delegates to RevokeApiKey.
+func RevokeApiKeyCLI(db *gorm.DB, id string) error {
+	repo := repository.NewGorm[auth.ApiKey](db)
+	return auth.RevokeApiKey(id, repo)
+}
