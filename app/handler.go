@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"notice-me-server/pkg/auth"
 	"notice-me-server/pkg/hub"
 	"notice-me-server/pkg/notification"
 	"notice-me-server/pkg/repository"
@@ -39,6 +40,8 @@ func (s *server) createNotificationHandler() func(w http.ResponseWriter, r *http
 			s.writeErrorResponse(w, err, http.StatusBadRequest)
 			return
 		}
+
+		notificationPostDto.ApiKeyValue = r.Header.Get(auth.API_KEY_HEADER)
 
 		if notificationPostDto.Body == "" || notificationPostDto.ClientId == "" || notificationPostDto.ClientGroupId == "" {
 			s.writeErrorResponse(w, errors.New("body, clientId and clientGroupId are required fields"), http.StatusBadRequest)
