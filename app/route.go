@@ -2,14 +2,15 @@ package app
 
 func (s *server) routes() {
 
-	s.r.Use(loggingMiddleware)
+	s.r.Use(s.loggingMiddleware)
 
 	// websocket connection
 	s.r.HandleFunc("/ws", s.wsHandler()).Methods("GET")
 
 	// api route group
 	apiRouter := s.r.PathPrefix("/api").Subrouter()
-	apiRouter.Use(jsonMiddleware)
+	apiRouter.Use(s.jsonMiddleware)
+	apiRouter.Use(s.authMiddleware)
 
 	// notifications CRUD
 	apiRouter.HandleFunc("/docs", s.docsHandler()).Methods("GET")

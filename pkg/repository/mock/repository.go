@@ -17,9 +17,8 @@ func NewRepository[T repository.Entity]() repository.Repository[T] {
 }
 
 func (r Repository[T]) Find(id string) (*T, error) {
-
 	if _, ok := r.entities[id]; !ok {
-		return nil, errors.New("entity not found")
+		return nil, errors.New("entity not found by id " + id)
 	}
 
 	return r.entities[id], nil

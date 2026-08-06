@@ -2,6 +2,8 @@ package notification
 
 import (
 	"encoding/json"
+	"errors"
+	"notice-me-server/pkg/auth"
 	"notice-me-server/pkg/config"
 	"notice-me-server/pkg/hub"
 	"notice-me-server/pkg/rabbit"
@@ -32,7 +34,8 @@ func PublishCreateNotification(
 		}
 	}
 
-	nBody, err := json.Marshal(n)
+	// we publish into rabbitmq the dto because of the api key value
+	nBody, err := json.Marshal(notificationPostDto)
 
 	if err != nil {
 		return nil, err
@@ -116,14 +119,38 @@ func DeleteNotification(
 	return nil
 }
 
-func CreateNotification(repo repository.Repository[Notification], rabbit rabbit.RabbitInterface, ws hub.HubInterface, body []byte) error {
-	n := &Notification{}
+func CreateNotification(repo repository.Repository[Notification], apiKeyRepo repository.Repository[auth.ApiKey], rabbit rabbit.RabbitInterface, ws hub.HubInterface, body []byte) error {
+	notificationPostDto := &NotificationPostDto{}
 
-	err := json.Unmarshal(body, n)
+	err := json.Unmarshal(body, notificationPostDto)
 	if err != nil {
 		alog.Error("Cannot unmarshal notification.create: " + err.Error())
 		return err
 	}
+
+	apiKey, err := apiKeyRepo.FindBy(repository.Field{Column: "Value", Value: notificationPostDto.ApiKeyValue})
+
+	if err != nil || len(apiKey) == 0 {
+		errorMessage := "Cannot find any api key by the id: " + notificationPostDto.ApiKeyValue
+
+		alog.Error(errorMessage)
+
+		if err != nil {
+			err = errors.New(errorMessage)
+		}
+
+		return err
+	}
+
+	n := NewNotification(
+		notificationPostDto.Body,
+		notificationPostDto.ClientId,
+		notificationPostDto.ClientGroupId,
+		notificationPostDto.Instant,
+		notificationPostDto.OriginClientId,
+	)
+
+	n.ApiKey = apiKey[0]
 
 	err = repo.Create(n)
 	if err != nil {

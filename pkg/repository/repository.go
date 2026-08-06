@@ -1,6 +1,7 @@
 package repository
 
-type Entity interface{}
+type Entity interface {
+}
 
 type Field struct {
 	Column string
