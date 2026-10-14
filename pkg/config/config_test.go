@@ -20,14 +20,14 @@ func TestExpandEnv(t *testing.T) {
 			want:     "bar",
 		},
 		{
-			name:   "simple reference unset expands to empty",
-			input:  "${FOO}",
-			want:   "",
+			name:  "simple reference unset expands to empty",
+			input: "${FOO}",
+			want:  "",
 		},
 		{
-			name:   "default used when unset",
-			input:  "${FOO:-baz}",
-			want:   "baz",
+			name:  "default used when unset",
+			input: "${FOO:-baz}",
+			want:  "baz",
 		},
 		{
 			name:     "env wins over default",
@@ -140,5 +140,24 @@ func TestLoadConfig(t *testing.T) {
 	}
 	if len(c.Rabbit.Queues) != 2 {
 		t.Fatalf("len(Rabbit.Queues) = %d, want %d", len(c.Rabbit.Queues), 2)
+	}
+}
+
+func TestLoadConfigParsesQueues(t *testing.T) {
+	c := LoadConfig()
+
+	names := map[string]bool{}
+	for _, q := range c.Rabbit.Queues {
+		names[q.Name] = true
+		if q.Exchange == "" {
+			t.Errorf("queue %q has an empty exchange", q.Name)
+		}
+		if !q.Durable {
+			t.Errorf("queue %q should be durable", q.Name)
+		}
+	}
+
+	if !names["notification.create"] || !names["notification.notify"] {
+		t.Fatalf("expected create/notify queues, got %v", names)
 	}
 }

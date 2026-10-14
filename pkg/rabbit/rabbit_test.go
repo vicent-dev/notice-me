@@ -3,6 +3,8 @@ package rabbit
 import (
 	"testing"
 	"time"
+
+	"notice-me-server/pkg/config"
 )
 
 func TestStopClosesQuit(t *testing.T) {
@@ -30,5 +32,28 @@ func TestRunConsumersReturnsWithoutQueues(t *testing.T) {
 	case <-done:
 	case <-time.After(time.Second):
 		t.Fatal("RunConsumers did not return with no queues")
+	}
+}
+
+func TestNewRabbitStoresConfig(t *testing.T) {
+	qc := []config.QueueConfig{{Name: "q1", Exchange: "e1"}}
+	r := NewRabbit(nil, 3, qc)
+
+	if got := r.GetQueuesConfig(); len(got) != 1 || got[0].Name != "q1" {
+		t.Fatalf("GetQueuesConfig() = %+v, want [{q1 e1}]", got)
+	}
+}
+
+func TestSetAndGetConnection(t *testing.T) {
+	r := NewRabbit(nil, 1, nil)
+
+	if r.GetConnection() != nil {
+		t.Fatal("expected nil connection initially")
+	}
+
+	// Setting and retrieving a connection round-trips (nil-safe here).
+	r.SetConnection(nil)
+	if r.GetConnection() != nil {
+		t.Fatal("expected nil connection after SetConnection(nil)")
 	}
 }

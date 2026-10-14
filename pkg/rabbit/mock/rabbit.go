@@ -8,6 +8,8 @@ import (
 
 type Rabbit struct {
 	ProducedMessages [][]byte
+	QueuesConfig     []config.QueueConfig
+	ProduceErr       error
 }
 
 func NewRabbitMock() rabbit.RabbitInterface {
@@ -28,7 +30,7 @@ func (r *Rabbit) Stop() {
 }
 
 func (r *Rabbit) GetQueuesConfig() []config.QueueConfig {
-	return []config.QueueConfig{}
+	return r.QueuesConfig
 }
 
 func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
@@ -38,6 +40,10 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 }
 
 func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {
+	if r.ProduceErr != nil {
+		return r.ProduceErr
+	}
+
 	r.ProducedMessages = append(r.ProducedMessages, msg)
 	return nil
 }
