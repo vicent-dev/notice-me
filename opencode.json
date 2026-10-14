@@ -1,22 +1,5 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "provider": {
-    "ollama": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Ollama (local)",
-      "options": {
-        "baseURL": "http://localhost:11434/v1"
-      },
-      "models": {
-        "second_constantine/deepseek-coder-v2:16b": {
-          "name": "DeepSeek Coder V2 16B (local)"
-        },
-        "qwen3.6:latest": {
-          "name": "Qwen 3.6 (local)"
-        }
-      }
-    }
-  },
   "default_agent": "orchestrator",
   "instructions": ["AGENTS.md"],
   "agent": {

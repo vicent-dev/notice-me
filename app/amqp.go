@@ -2,9 +2,10 @@ package app
 
 import (
 	"fmt"
-	"github.com/en-vee/alog"
 	"notice-me-server/pkg/rabbit"
 	"time"
+
+	"github.com/en-vee/alog"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
