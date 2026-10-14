@@ -4,7 +4,6 @@ import (
 	"context"
 	"notice-me-server/pkg/config"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/en-vee/alog"
@@ -16,6 +15,7 @@ type RabbitInterface interface {
 	Consume(queue config.QueueConfig, callbacks map[string]func(body []byte), consumerKey string)
 	Produce(queue config.QueueConfig, msg []byte) error
 	GetQueuesConfig() []config.QueueConfig
+	Stop()
 	Close() error
 	GetConnection() *amqp.Connection
 	SetConnection(*amqp.Connection)
@@ -25,6 +25,7 @@ type Rabbit struct {
 	conn           *amqp.Connection
 	consumersCount int
 	queuesConfig   []config.QueueConfig
+	quit           chan struct{}
 }
 
 func NewRabbit(conn *amqp.Connection, consumersCount int, queuesConfig []config.QueueConfig) RabbitInterface {
@@ -32,6 +33,7 @@ func NewRabbit(conn *amqp.Connection, consumersCount int, queuesConfig []config.
 		conn:           conn,
 		consumersCount: consumersCount,
 		queuesConfig:   queuesConfig,
+		quit:           make(chan struct{}),
 	}
 }
 
@@ -51,10 +53,11 @@ func (r *Rabbit) Close() error {
 	return r.conn.Close()
 }
 
-func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
-	wg := sync.WaitGroup{}
-	wg.Add(len(r.GetQueuesConfig()) * r.consumersCount)
+func (r *Rabbit) Stop() {
+	close(r.quit)
+}
 
+func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 	for _, queue := range r.queuesConfig {
 		consumerKey := queue.Name + "_consumer_group_key"
 		for cc := range r.consumersCount {
@@ -62,8 +65,6 @@ func (r *Rabbit) RunConsumers(callbacks map[string]func(body []byte)) {
 			go r.Consume(queue, callbacks, consumerKey)
 		}
 	}
-
-	wg.Wait()
 }
 
 func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(body []byte), consumerKey string) {
@@ -120,10 +121,13 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 		nil,
 	)
 
-	var forever chan struct{}
+	for {
+		select {
+		case d, ok := <-msgs:
+			if !ok {
+				return
+			}
 
-	go func() {
-		for d := range msgs {
 			alog.Info("Message received [" + d.RoutingKey + "] " + string(d.Body))
 
 			callback, ok := callbacks[d.RoutingKey]
@@ -131,10 +135,10 @@ func (r *Rabbit) Consume(queue config.QueueConfig, callbacks map[string]func(bod
 			if ok {
 				callback(d.Body)
 			}
+		case <-r.quit:
+			return
 		}
-	}()
-
-	<-forever
+	}
 }
 
 func (r *Rabbit) Produce(queue config.QueueConfig, msg []byte) error {

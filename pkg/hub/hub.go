@@ -8,6 +8,7 @@ import (
 
 type HubInterface interface {
 	Run()
+	Stop()
 	RegisterClient(c *Client)
 	UnregisterClient(c *Client)
 	Notify(clientId, clientGroupId string, body []byte)
@@ -27,6 +28,9 @@ type Hub struct {
 
 	// Unregister requests from clients.
 	unregister chan *Client
+
+	// Signals the hub to stop.
+	quit chan struct{}
 }
 
 var Upgrader = websocket.Upgrader{
@@ -50,7 +54,12 @@ func NewHub() HubInterface {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
+		quit:       make(chan struct{}),
 	}
+}
+
+func (ws *Hub) Stop() {
+	close(ws.quit)
 }
 
 func (ws *Hub) RegisterClient(c *Client) {
@@ -134,6 +143,13 @@ func (ws *Hub) Run() {
 					delete(ws.clients, client)
 				}
 			}
+		// Shut down the hub and close all clients
+		case <-ws.quit:
+			for client := range ws.clients {
+				client.Conn.Close()
+				delete(ws.clients, client)
+			}
+			return
 		}
 	}
 }
