@@ -1,15 +1,19 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/en-vee/alog"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"gorm.io/gorm"
+	"fmt"
 	"net/http"
 	"notice-me-server/pkg/config"
 	"notice-me-server/pkg/hub"
 	"notice-me-server/pkg/rabbit"
+	"time"
+
+	"github.com/en-vee/alog"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"gorm.io/gorm"
 )
 
 type server struct {
@@ -19,6 +23,8 @@ type server struct {
 	repositories map[string]interface{}
 	db           *gorm.DB
 	c            *config.Config
+
+	httpServer http.Server
 }
 
 func NewServer() *server {
@@ -33,25 +39,27 @@ func NewServer() *server {
 
 	s.routes()
 
+	s.httpServer = newHTTPServer(&s)
+
 	return &s
 }
 
-func (s *server) Run() error {
+func newHTTPServer(s *server) http.Server {
+	headersOk := handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin"})
+	originsOk := handlers.AllowedOrigins(s.c.Server.Cors)
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
 
-	defer func() {
-		err := s.rabbit.Close()
-		if err != nil {
-			alog.Error("Error closing amqp connection: " + err.Error())
-		}
-	}()
+	handler := handlers.CORS(headersOk, originsOk, methodsOk)(handlers.RecoveryHandler()(s.r))
 
-	defer func() {
-		dbInstance, _ := s.db.DB()
-		err := dbInstance.Close()
-		if err != nil {
-			alog.Error("Error closing sql connection: " + err.Error())
-		}
-	}()
+	return http.Server{
+		Addr:              ":" + s.c.Server.Port,
+		ErrorLog:          newServerErrorLog(),
+		Handler:           handler,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+}
+
+func (s *server) Run(ctx context.Context) error {
 
 	go func(websocket hub.HubInterface) {
 		websocket.Run()
@@ -59,25 +67,51 @@ func (s *server) Run() error {
 
 	s.startConsumers()
 
-	headersOk := handlers.AllowedHeaders([]string{"Accept", "Accept-Language", "Content-Type", "Content-Language", "Origin"})
-	originsOk := handlers.AllowedOrigins(s.c.Server.Cors)
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+	errCh := make(chan error, 1)
 
-	handler := handlers.CORS(headersOk, originsOk, methodsOk)(handlers.RecoveryHandler()(s.r))
+	go func() {
+		var err error
 
-	log := newServerErrorLog()
+		if s.c.Server.Env == "production" {
+			err = s.httpServer.ListenAndServeTLS(s.c.Server.TlsCert, s.c.Server.TlsKey)
+		} else {
+			err = s.httpServer.ListenAndServe()
+		}
 
-	server := &http.Server{
-		Addr:     ":" + s.c.Server.Port,
-		ErrorLog: log,
-		Handler:  handler,
+		if err != nil && err != http.ErrServerClosed {
+			errCh <- err
+		}
+		close(errCh)
+	}()
+
+	<-ctx.Done()
+	alog.Info("shutting down HTTP server")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	shutdownErr := s.httpServer.Shutdown(shutdownCtx)
+
+	s.ws.Stop()
+	s.rabbit.Stop()
+
+	if err := s.rabbit.Close(); err != nil {
+		alog.Error("Error closing amqp connection: " + err.Error())
 	}
 
-	if s.c.Server.Env == "production" {
-		return server.ListenAndServeTLS(s.c.Server.TlsCert, s.c.Server.TlsKey)
-	} else {
-		return server.ListenAndServe()
+	if s.db != nil {
+		if dbInstance, err := s.db.DB(); err == nil {
+			if err := dbInstance.Close(); err != nil {
+				alog.Error("Error closing sql connection: " + err.Error())
+			}
+		}
 	}
+
+	if shutdownErr != nil {
+		return fmt.Errorf("http server shutdown: %w", shutdownErr)
+	}
+
+	return <-errCh
 }
 
 func (s *server) writeResponse(w http.ResponseWriter, response interface{}) {

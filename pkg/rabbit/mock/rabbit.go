@@ -24,6 +24,9 @@ func (r *Rabbit) Close() error {
 	return nil
 }
 
+func (r *Rabbit) Stop() {
+}
+
 func (r *Rabbit) GetQueuesConfig() []config.QueueConfig {
 	return []config.QueueConfig{}
 }
