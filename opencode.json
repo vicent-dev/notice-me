@@ -5,15 +5,10 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Ollama (local)",
       "options": {
-        "baseURL": "http://localhost:11434/v1"
+        "baseURL": "http://192.168.1.206:11434/v1"
       },
       "models": {
-        "second_constantine/deepseek-coder-v2:16b": {
-          "name": "DeepSeek Coder V2 16B (local)"
-        },
-        "qwen3.6:latest": {
-          "name": "Qwen 3.6 (local)"
-        }
+        "gemma4:e4b": {}
       }
     }
   },
